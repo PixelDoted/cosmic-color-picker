@@ -58,6 +58,10 @@ impl OKLAB {
     pub fn to_rgb(&self) -> [f32; 3] {
         oklab_to_rgb(self.values[0], self.values[1], self.values[2])
     }
+
+    pub fn copy_to_clipboard(&self) -> String {
+        format!("{}, {}, {}", self.values[0], self.values[1], self.values[2])
+    }
 }
 
 impl OKLAB {

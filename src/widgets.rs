@@ -25,7 +25,7 @@ where
     Message: Clone + 'a,
 {
     widget::slider(range, value, on_change)
-        .step(1.0 / 255.0)
+        .step(0.001)
         .style(theme::iced::Slider::Custom {
             active: Rc::new(|t| {
                 let cosmic = t.cosmic();

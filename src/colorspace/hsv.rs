@@ -67,7 +67,7 @@ impl HSV {
         let x_max = rgb[0].max(rgb[1]).max(rgb[2]);
         let x_min = rgb[0].min(rgb[1]).min(rgb[2]);
         let c = x_max - x_min;
-        let h = if c == 0.0 {
+        let mut h = if c == 0.0 {
             0.0
         } else if x_max == rgb[0] {
             60.0 * ((rgb[1] - rgb[2]) / c % 6.0)
@@ -79,6 +79,10 @@ impl HSV {
             // Default to (c = 0)
             0.0
         };
+
+        if h < 0.0 {
+            h = 360.0 + h;
+        }
 
         let s = if x_max == 0.0 { 0.0 } else { c / x_max };
 
@@ -110,6 +114,10 @@ impl HSV {
 
         let m = self.values[2] - c;
         [r1 + m, g1 + m, b1 + m]
+    }
+
+    pub fn copy_to_clipboard(&self) -> String {
+        format!("{}, {}, {}", self.values[0], self.values[1], self.values[2])
     }
 }
 

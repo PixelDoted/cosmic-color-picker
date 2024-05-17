@@ -68,11 +68,15 @@ pub struct OKLCH {
 impl OKLCH {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
         let lab = super::oklab::rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
-        let lch = [
+        let mut lch = [
             lab[0],
             (lab[1] * lab[1] + lab[2] * lab[2]).sqrt(),
             lab[2].atan2(lab[1]).to_degrees(),
         ];
+
+        if lch[2] < 0.0 {
+            lch[2] = 360.0 + lch[2];
+        }
 
         Self {
             strings: [lch[0].to_string(), lch[1].to_string(), lch[2].to_string()],
@@ -86,6 +90,10 @@ impl OKLCH {
         let b = self.values[1] * h.sin();
 
         super::oklab::oklab_to_rgb(self.values[0], a, b)
+    }
+
+    pub fn copy_to_clipboard(&self) -> String {
+        format!("{}, {}, {}", self.values[0], self.values[1], self.values[2])
     }
 }
 

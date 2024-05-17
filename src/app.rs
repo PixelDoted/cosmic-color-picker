@@ -5,9 +5,14 @@ use crate::fl;
 use crate::widgets::ColorBlock;
 use cosmic::app::{Command, Core};
 use cosmic::iced::alignment::{Horizontal, Vertical};
-use cosmic::iced::{Color, Length};
+use cosmic::iced::clipboard;
+use cosmic::iced::keyboard::{Key, Modifiers};
+use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Length, Subscription};
+use cosmic::iced_core::SmolStr;
+use cosmic::widget::menu::key_bind::KeyBind;
 use cosmic::widget::nav_bar;
 use cosmic::{theme, widget, Application, Element};
+use log::info;
 
 #[derive(Default)]
 pub struct ColorPicker {
@@ -21,6 +26,9 @@ pub struct ColorPicker {
 pub enum Message {
     ChangeValue { index: usize, value: f32 },
     ChangeString { index: usize, string: String },
+
+    CopyToClipboard,
+    Key(Key, Modifiers),
 }
 
 impl Application for ColorPicker {
@@ -94,6 +102,15 @@ impl Application for ColorPicker {
                 ColorSpace::OKLAB(oklab) => oklab.change_string(index, string),
                 ColorSpace::OKLCH(oklch) => oklch.change_string(index, string),
             },
+
+            Message::CopyToClipboard => {
+                return self.copy_to_clipboard();
+            }
+            Message::Key(key, modifiers) => {
+                if modifiers.control() && key == Key::Character("c".into()) {
+                    return self.copy_to_clipboard();
+                }
+            }
         }
 
         Command::none()
@@ -107,17 +124,25 @@ impl Application for ColorPicker {
             ColorSpace::OKLCH(oklch) => (oklch.to_rgb(), oklch.view()),
         };
 
-        let color_block = widget::Container::new(ColorBlock::new(
-            Color::from_rgb(rgb[0], rgb[1], rgb[2]),
-            100.0,
-            100.0,
-        ))
+        let sidebar = widget::Container::new(
+            widget::column::with_capacity(2)
+                .push(ColorBlock::new(
+                    Color::from_rgb(rgb[0], rgb[1], rgb[2]),
+                    100.0,
+                    100.0,
+                ))
+                .push(
+                    widget::button::icon(widget::icon::from_name("edit-copy-symbolic"))
+                        .on_press(Message::CopyToClipboard),
+                )
+                .spacing(10.0),
+        )
         .style(theme::Container::Card)
         .padding(10.0);
 
         widget::container(
-            widget::column::with_capacity(2)
-                .push(color_block)
+            widget::row::with_capacity(2)
+                .push(sidebar)
                 .push(content)
                 .spacing(10.0)
                 .padding(10.0),
@@ -125,5 +150,29 @@ impl Application for ColorPicker {
         .width(Length::Fill)
         .height(Length::Fill)
         .into()
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        Subscription::batch(vec![event::listen_with(|event, status| match event {
+            Event::Keyboard(KeyEvent::KeyPressed { key, modifiers, .. }) => match status {
+                event::Status::Ignored => Some(Message::Key(key, modifiers)),
+                event::Status::Captured => None,
+            },
+            _ => None,
+        })])
+    }
+}
+
+impl ColorPicker {
+    fn copy_to_clipboard(&self) -> Command<Message> {
+        let contents = match &self.colorspace {
+            ColorSpace::RGB(rgb) => rgb.copy_to_clipboard(),
+            ColorSpace::HSV(hsv) => hsv.copy_to_clipboard(),
+            ColorSpace::OKLAB(oklab) => oklab.copy_to_clipboard(),
+            ColorSpace::OKLCH(oklch) => oklch.copy_to_clipboard(),
+        };
+
+        info!("Copying \"{}\" to clipboard", contents);
+        clipboard::write(contents)
     }
 }
