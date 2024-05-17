@@ -1,5 +1,5 @@
-name := 'cosmic-app-template'
-export APPID := 'com.example.CosmicAppTemplate'
+name := 'cosmic-color-picker'
+export APPID := 'me.pixeldoted.CosmicColorPicker'
 
 rootdir := ''
 prefix := '/usr'
@@ -62,7 +62,7 @@ dev *args:
 
 # Run with debug logs
 run *args:
-    env RUST_LOG=cosmic_tasks=info RUST_BACKTRACE=full cargo run --release {{args}}
+    env RUST_LOG=cosmic-color-picker=info RUST_BACKTRACE=full cargo run --release {{args}}
 
 # Installs files
 install:
