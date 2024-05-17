@@ -192,8 +192,7 @@ impl OKLCH {
                     .max_width(300.0)
                     .max_height(300.0),
             )
-            .spacing(10.0)
-            .padding(10.0);
+            .spacing(10.0);
 
         content.into()
     }
