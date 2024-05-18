@@ -128,9 +128,27 @@ impl Application for ColorPicker {
                 ColorSpace::OKLCH(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::OKLCH),
             };
 
+            let min_rgb = rgb[0].min(rgb[1]).min(rgb[2]).min(0.0);
+            let max_rgb = rgb[0].max(rgb[1]).max(rgb[2]).max(1.0) - min_rgb;
+            let norm_rgb = [
+                (rgb[0] - min_rgb) / max_rgb,
+                (rgb[1] - min_rgb) / max_rgb,
+                (rgb[2] - min_rgb) / max_rgb,
+            ];
+
             let sidebar = widget::Container::new(
                 widget::column::with_capacity(3)
-                    .push(color_block(Color::from_rgb(rgb[0], rgb[1], rgb[2])))
+                    .push(
+                        widget::row::with_capacity(2)
+                            .push(color_block(
+                                Color::from_rgb(rgb[0], rgb[1], rgb[2]),
+                                [true, false, false, true],
+                            ))
+                            .push(color_block(
+                                Color::from_rgb(norm_rgb[0], norm_rgb[1], norm_rgb[2]),
+                                [false, true, true, false],
+                            )),
+                    )
                     .push(
                         widget::row::with_capacity(3)
                             .push(

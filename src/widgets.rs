@@ -12,18 +12,25 @@ use cosmic::{
     },
 };
 
-pub fn color_block<'a, Message>(color: Color) -> cosmic::Element<'a, Message>
+pub fn color_block<'a, Message>(color: Color, border: [bool; 4]) -> cosmic::Element<'a, Message>
 where
     Message: Clone + 'a,
 {
     widget::container(widget::vertical_space(100.0))
         .style(theme::Container::custom(move |theme| {
             let cosmic = theme.cosmic();
+            let radius = cosmic.corner_radii.radius_xs;
 
             cosmic::iced_style::container::Appearance {
                 background: Some(color.into()),
                 border: Border {
-                    radius: cosmic.corner_radii.radius_xs.into(),
+                    radius: [
+                        radius[0] * (border[0] as i8) as f32,
+                        radius[1] * (border[1] as i8) as f32,
+                        radius[2] * (border[2] as i8) as f32,
+                        radius[3] * (border[3] as i8) as f32,
+                    ]
+                    .into(),
                     color,
                     ..Default::default()
                 },
