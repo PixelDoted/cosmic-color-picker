@@ -3,7 +3,7 @@ use cosmic::{
     widget,
 };
 
-use crate::{app::Message, fl, widgets::color_slider};
+use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
 
 const COLOR_STOPS_RED: [ColorStop; 2] = [
     ColorStop {
@@ -40,6 +40,15 @@ const COLOR_STOPS_BLUE: [ColorStop; 2] = [
 pub struct RGB {
     pub values: [f32; 3],
     pub strings: [String; 3],
+}
+
+impl Default for RGB {
+    fn default() -> Self {
+        Self {
+            values: [1.0; 3],
+            strings: ["1".into(), "1".into(), "1".into()],
+        }
+    }
 }
 
 impl RGB {
@@ -136,24 +145,9 @@ impl RGB {
             .padding(10.0);
 
         let content = widget::column::with_capacity(3)
-            .push(
-                widget::container(red)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(green)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(blue)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
+            .push(widget::container(red).style(cosmic::style::Container::Card))
+            .push(widget::container(green).style(cosmic::style::Container::Card))
+            .push(widget::container(blue).style(cosmic::style::Container::Card))
             .spacing(10.0);
 
         content.into()

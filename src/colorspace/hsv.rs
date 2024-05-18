@@ -3,7 +3,7 @@ use cosmic::{
     widget,
 };
 
-use crate::{app::Message, fl, widgets::color_slider};
+use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
 
 const COLOR_STOPS_HUE: [ColorStop; 7] = [
     ColorStop {
@@ -198,24 +198,9 @@ impl HSV {
             .padding(10.0);
 
         let content = widget::column::with_capacity(3)
-            .push(
-                widget::container(red)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(green)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(blue)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
+            .push(widget::container(red).style(cosmic::style::Container::Card))
+            .push(widget::container(green).style(cosmic::style::Container::Card))
+            .push(widget::container(blue).style(cosmic::style::Container::Card))
             .spacing(10.0);
 
         content.into()

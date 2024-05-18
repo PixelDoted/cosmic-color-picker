@@ -6,7 +6,7 @@ use cosmic::{
 };
 use once_cell::sync::Lazy;
 
-use crate::{app::Message, fl, widgets::color_slider};
+use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
 
 const COLOR_STOPS_LIGHTNESS: [ColorStop; 2] = [
     ColorStop {
@@ -174,24 +174,9 @@ impl OKLCH {
             .padding(10.0);
 
         let content = widget::column::with_capacity(3)
-            .push(
-                widget::container(lightness)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(chroma)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
-            .push(
-                widget::container(hue)
-                    .style(cosmic::style::Container::Card)
-                    .max_width(300.0)
-                    .max_height(300.0),
-            )
+            .push(widget::container(lightness).style(cosmic::style::Container::Card))
+            .push(widget::container(chroma).style(cosmic::style::Container::Card))
+            .push(widget::container(hue).style(cosmic::style::Container::Card))
             .spacing(10.0);
 
         content.into()

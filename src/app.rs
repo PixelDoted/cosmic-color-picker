@@ -1,33 +1,39 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::colorspace::{self, ColorSpace};
+use crate::colorspace::{ColorSpace, ColorSpaceCombo, ColorSpaceMessage};
 use crate::fl;
-use crate::widgets::ColorBlock;
+use crate::widgets::color_block;
 use cosmic::app::{Command, Core};
 use cosmic::iced::alignment::{Horizontal, Vertical};
-use cosmic::iced::clipboard;
 use cosmic::iced::keyboard::{Key, Modifiers};
-use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Length, Subscription};
-use cosmic::iced_core::SmolStr;
-use cosmic::widget::menu::key_bind::KeyBind;
-use cosmic::widget::nav_bar;
+use cosmic::iced::{clipboard, Length};
+use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscription};
+use cosmic::iced_widget::scrollable::{Direction, Properties};
 use cosmic::{theme, widget, Application, Element};
 use log::info;
 
-#[derive(Default)]
 pub struct ColorPicker {
-    pub colorspace: ColorSpace,
+    pub spaces: Vec<ColorSpace>,
+    last_edited: usize,
 
-    nav_model: nav_bar::Model,
+    colorspace_combo: widget::combo_box::State<ColorSpaceCombo>,
     core: Core,
 }
 
 #[derive(Debug, Clone)]
 pub enum Message {
-    ChangeValue { index: usize, value: f32 },
-    ChangeString { index: usize, string: String },
+    ColorSpace {
+        index: usize,
+        message: ColorSpaceMessage,
+    },
+    ChangeColorSpace {
+        index: usize,
+        selected: ColorSpaceCombo,
+    },
+    AddSpace,
+    RemoveSpace(usize),
 
-    CopyToClipboard,
+    CopyToClipboard(usize),
     Key(Key, Modifiers),
 }
 
@@ -54,61 +60,57 @@ impl Application for ColorPicker {
     }
 
     fn init(core: Core, _flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let mut nav_model = nav_bar::Model::default();
-        nav_model.insert().text(fl!("rgb")).data(0);
-        nav_model.insert().text(fl!("hsv")).data(1);
-        nav_model.insert().text(fl!("oklab")).data(2);
-        nav_model.insert().text(fl!("oklch")).data(3);
-        nav_model.activate_position(0);
-
         let example = ColorPicker {
-            colorspace: ColorSpace::default(),
+            spaces: vec![ColorSpace::default()],
+            last_edited: 0,
 
-            nav_model,
+            colorspace_combo: widget::combo_box::State::new(vec![
+                ColorSpaceCombo::RGB,
+                ColorSpaceCombo::HSV,
+                ColorSpaceCombo::OKLAB,
+                ColorSpaceCombo::OKLCH,
+            ]),
             core,
         };
 
         (example, Command::none())
     }
 
-    fn nav_model(&self) -> Option<&nav_bar::Model> {
-        Some(&self.nav_model)
-    }
-
-    fn on_nav_select(&mut self, id: nav_bar::Id) -> Command<Self::Message> {
-        self.nav_model.activate(id);
-        match self.nav_model.active_data() {
-            Some(0) => self.colorspace.to_rgb(),
-            Some(1) => self.colorspace.to_hsv(),
-            Some(2) => self.colorspace.to_oklab(),
-            Some(3) => self.colorspace.to_oklch(),
-            _ => (),
-        }
-
-        Command::none()
-    }
-
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::ChangeValue { index, value } => match &mut self.colorspace {
-                ColorSpace::RGB(rgb) => rgb.change_value(index, value),
-                ColorSpace::HSV(hsv) => hsv.change_value(index, value),
-                ColorSpace::OKLAB(oklab) => oklab.change_value(index, value),
-                ColorSpace::OKLCH(oklch) => oklch.change_value(index, value),
+            Message::ColorSpace { index: i, message } => match message {
+                ColorSpaceMessage::ChangeValue { index, value } => match &mut self.spaces[i] {
+                    ColorSpace::RGB(rgb) => rgb.change_value(index, value),
+                    ColorSpace::HSV(hsv) => hsv.change_value(index, value),
+                    ColorSpace::OKLAB(oklab) => oklab.change_value(index, value),
+                    ColorSpace::OKLCH(oklch) => oklch.change_value(index, value),
+                },
+                ColorSpaceMessage::ChangeString { index, string } => match &mut self.spaces[i] {
+                    ColorSpace::RGB(rgb) => rgb.change_string(index, string),
+                    ColorSpace::HSV(hsv) => hsv.change_string(index, string),
+                    ColorSpace::OKLAB(oklab) => oklab.change_string(index, string),
+                    ColorSpace::OKLCH(oklch) => oklch.change_string(index, string),
+                },
             },
-            Message::ChangeString { index, string } => match &mut self.colorspace {
-                ColorSpace::RGB(rgb) => rgb.change_string(index, string),
-                ColorSpace::HSV(hsv) => hsv.change_string(index, string),
-                ColorSpace::OKLAB(oklab) => oklab.change_string(index, string),
-                ColorSpace::OKLCH(oklch) => oklch.change_string(index, string),
+            Message::ChangeColorSpace { index, selected } => match selected {
+                ColorSpaceCombo::RGB => self.spaces[index].to_rgb(),
+                ColorSpaceCombo::HSV => self.spaces[index].to_hsv(),
+                ColorSpaceCombo::OKLAB => self.spaces[index].to_oklab(),
+                ColorSpaceCombo::OKLCH => self.spaces[index].to_oklch(),
             },
+            Message::AddSpace => {
+                self.spaces.push(ColorSpace::default());
+            }
+            Message::RemoveSpace(index) => {
+                self.spaces.remove(index);
+            }
 
-            Message::CopyToClipboard => {
-                return self.copy_to_clipboard();
+            Message::CopyToClipboard(index) => {
+                return self.copy_to_clipboard(index);
             }
             Message::Key(key, modifiers) => {
                 if modifiers.control() && key == Key::Character("c".into()) {
-                    return self.copy_to_clipboard();
+                    return self.copy_to_clipboard(self.last_edited);
                 }
             }
         }
@@ -117,39 +119,73 @@ impl Application for ColorPicker {
     }
 
     fn view(&self) -> Element<Self::Message> {
-        let (rgb, content) = match &self.colorspace {
-            ColorSpace::RGB(rgb) => (rgb.to_rgb(), rgb.view()),
-            ColorSpace::HSV(hsv) => (hsv.to_rgb(), hsv.view()),
-            ColorSpace::OKLAB(oklab) => (oklab.to_rgb(), oklab.view()),
-            ColorSpace::OKLCH(oklch) => (oklch.to_rgb(), oklch.view()),
-        };
+        let mut contents = widget::row::with_capacity(self.spaces.len());
 
-        let sidebar = widget::Container::new(
-            widget::column::with_capacity(2)
-                .push(ColorBlock::new(
-                    Color::from_rgb(rgb[0], rgb[1], rgb[2]),
-                    100.0,
-                    100.0,
-                ))
-                .push(
-                    widget::button::icon(widget::icon::from_name("edit-copy-symbolic"))
-                        .on_press(Message::CopyToClipboard),
+        for (colorspace, index) in self.spaces.iter().zip(0..) {
+            let (rgb, content, combo_selection) = match colorspace {
+                ColorSpace::RGB(rgb) => (rgb.to_rgb(), rgb.view(), ColorSpaceCombo::RGB),
+                ColorSpace::HSV(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::HSV),
+                ColorSpace::OKLAB(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::OKLAB),
+                ColorSpace::OKLCH(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::OKLCH),
+            };
+
+            let sidebar = widget::Container::new(
+                widget::column::with_capacity(3)
+                    .push(color_block(Color::from_rgb(rgb[0], rgb[1], rgb[2])))
+                    .push(
+                        widget::row::with_capacity(3)
+                            .push(
+                                widget::button::icon(widget::icon::from_name("edit-copy-symbolic"))
+                                    .on_press(Message::CopyToClipboard(index)),
+                            )
+                            .push(widget::Space::with_width(Length::Fill))
+                            .push(
+                                widget::button::icon(widget::icon::from_name(
+                                    "user-trash-full-symbolic",
+                                ))
+                                .on_press(Message::RemoveSpace(index))
+                                .style(theme::Button::Destructive),
+                            ),
+                    )
+                    .push(widget::combo_box(
+                        &self.colorspace_combo,
+                        "",
+                        Some(&combo_selection),
+                        move |t| Message::ChangeColorSpace { index, selected: t },
+                    ))
+                    .spacing(10.0),
+            )
+            .style(theme::Container::Card)
+            .padding(10.0);
+
+            contents = contents.push(widget::container(
+                widget::column::with_capacity(2)
+                    .push(sidebar)
+                    .push(content.map(move |message| Message::ColorSpace { index, message }))
+                    .spacing(10.0)
+                    .padding(10.0)
+                    .width(300.0),
+            ));
+        }
+
+        {
+            contents = contents.push(
+                widget::container(
+                    widget::button::icon(widget::icon::from_name("list-add-symbolic"))
+                        .icon_size(32)
+                        .on_press(Message::AddSpace),
                 )
-                .spacing(10.0),
-        )
-        .style(theme::Container::Card)
-        .padding(10.0);
+                .align_x(Horizontal::Center)
+                .align_y(Vertical::Center)
+                .width(50.0)
+                .height(200.0),
+            );
+        }
 
-        widget::container(
-            widget::row::with_capacity(2)
-                .push(sidebar)
-                .push(content)
-                .spacing(10.0)
-                .padding(10.0),
-        )
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .into()
+        widget::scrollable(contents)
+            .direction(Direction::Horizontal(Properties::new()))
+            .height(Length::Fill)
+            .into()
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
@@ -164,8 +200,8 @@ impl Application for ColorPicker {
 }
 
 impl ColorPicker {
-    fn copy_to_clipboard(&self) -> Command<Message> {
-        let contents = match &self.colorspace {
+    fn copy_to_clipboard(&self, index: usize) -> Command<Message> {
+        let contents = match &self.spaces[index] {
             ColorSpace::RGB(rgb) => rgb.copy_to_clipboard(),
             ColorSpace::HSV(hsv) => hsv.copy_to_clipboard(),
             ColorSpace::OKLAB(oklab) => oklab.copy_to_clipboard(),

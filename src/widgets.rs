@@ -1,19 +1,38 @@
-use std::{ops::RangeInclusive, rc::Rc, sync::Arc};
+use std::{ops::RangeInclusive, rc::Rc};
 
 use cosmic::{
     iced::{
         gradient::{ColorStop, Linear},
-        Border, Color, Length, Radians, Size,
+        Border, Color, Length, Radians,
     },
-    iced_core::{layout, renderer, Shadow},
-    iced_widget::row,
     theme,
     widget::{
         self,
         slider::{self, HandleShape, RailBackground},
     },
-    Element, Theme,
 };
+
+pub fn color_block<'a, Message>(color: Color) -> cosmic::Element<'a, Message>
+where
+    Message: Clone + 'a,
+{
+    widget::container(widget::vertical_space(100.0))
+        .style(theme::Container::custom(move |theme| {
+            let cosmic = theme.cosmic();
+
+            cosmic::iced_style::container::Appearance {
+                background: Some(color.into()),
+                border: Border {
+                    radius: cosmic.corner_radii.radius_xs.into(),
+                    color,
+                    ..Default::default()
+                },
+                ..Default::default()
+            }
+        }))
+        .width(Length::Fill)
+        .into()
+}
 
 pub fn color_slider<'a, Message>(
     range: RangeInclusive<f32>,
@@ -71,67 +90,4 @@ where
             }),
         })
         .into()
-}
-
-pub struct ColorBlock {
-    color: Color,
-    width: f32,
-    height: f32,
-}
-
-impl ColorBlock {
-    pub fn new(color: Color, width: f32, height: f32) -> Self {
-        Self {
-            color,
-            width,
-            height,
-        }
-    }
-}
-
-impl<Message, Theme, Renderer> widget::Widget<Message, Theme, Renderer> for ColorBlock
-where
-    Renderer: renderer::Renderer,
-{
-    fn size(&self) -> Size<Length> {
-        Size {
-            width: Length::Shrink,
-            height: Length::Shrink,
-        }
-    }
-
-    fn layout(
-        &self,
-        _tree: &mut cosmic::iced_core::widget::Tree,
-        _renderer: &Renderer,
-        _limits: &cosmic::iced_core::layout::Limits,
-    ) -> cosmic::iced_core::layout::Node {
-        layout::Node::new(Size::new(self.width, self.height))
-    }
-
-    fn draw(
-        &self,
-        _tree: &cosmic::iced_core::widget::Tree,
-        renderer: &mut Renderer,
-        _theme: &Theme,
-        _style: &cosmic::iced_core::renderer::Style,
-        layout: cosmic::iced_core::Layout<'_>,
-        _cursor: cosmic::iced_core::mouse::Cursor,
-        _viewport: &cosmic::iced::Rectangle,
-    ) {
-        renderer.fill_quad(
-            renderer::Quad {
-                bounds: layout.bounds(),
-                border: Border::default(),
-                shadow: Shadow::default(),
-            },
-            self.color,
-        );
-    }
-}
-
-impl<'a, Message> From<ColorBlock> for Element<'a, Message> {
-    fn from(value: ColorBlock) -> Self {
-        Self::new(value)
-    }
 }

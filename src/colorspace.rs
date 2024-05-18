@@ -3,12 +3,44 @@ mod oklab;
 mod oklch;
 mod rgb;
 
-#[derive(Clone)]
+use std::fmt::Display;
+
+pub use hsv::HSV;
+pub use oklab::OKLAB;
+pub use oklch::OKLCH;
+pub use rgb::RGB;
+
+#[derive(Clone, Debug)]
+pub enum ColorSpaceMessage {
+    ChangeValue { index: usize, value: f32 },
+    ChangeString { index: usize, string: String },
+}
+
+#[derive(Clone, Default, Debug)]
+pub enum ColorSpaceCombo {
+    #[default]
+    RGB,
+    HSV,
+    OKLAB,
+    OKLCH,
+}
+
+impl Display for ColorSpaceCombo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ColorSpaceCombo::RGB => f.write_str("RGB"),
+            ColorSpaceCombo::HSV => f.write_str("HSV"),
+            ColorSpaceCombo::OKLAB => f.write_str("OKLAB"),
+            ColorSpaceCombo::OKLCH => f.write_str("OKLCH"),
+        }
+    }
+}
+
 pub enum ColorSpace {
-    RGB(rgb::RGB),
-    HSV(hsv::HSV),
-    OKLAB(oklab::OKLAB),
-    OKLCH(oklch::OKLCH),
+    RGB(RGB),
+    HSV(HSV),
+    OKLAB(OKLAB),
+    OKLCH(OKLCH),
 }
 
 impl Default for ColorSpace {
