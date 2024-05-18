@@ -1,10 +1,9 @@
-use std::ops::Deref;
+// SPDX-License-Identifier: GPL-3.0-only
 
 use cosmic::{
     iced::{gradient::ColorStop, Alignment, Color},
     widget,
 };
-use once_cell::sync::Lazy;
 
 use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
 

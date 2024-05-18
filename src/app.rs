@@ -54,7 +54,6 @@ impl Application for ColorPicker {
         &mut self.core
     }
 
-    /// This is the header of your application, it can be used to display the title of your application.
     fn header_center(&self) -> Vec<Element<Self::Message>> {
         vec![widget::text::heading(fl!("app-title")).into()]
     }

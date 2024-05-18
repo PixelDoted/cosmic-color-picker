@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-3.0-only
+
 mod hsv;
 mod oklab;
 mod oklch;
@@ -9,6 +11,8 @@ pub use hsv::HSV;
 pub use oklab::OKLAB;
 pub use oklch::OKLCH;
 pub use rgb::RGB;
+
+use crate::fl;
 
 #[derive(Clone, Debug)]
 pub enum ColorSpaceMessage {
@@ -28,10 +32,10 @@ pub enum ColorSpaceCombo {
 impl Display for ColorSpaceCombo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ColorSpaceCombo::RGB => f.write_str("RGB"),
-            ColorSpaceCombo::HSV => f.write_str("HSV"),
-            ColorSpaceCombo::OKLAB => f.write_str("OKLAB"),
-            ColorSpaceCombo::OKLCH => f.write_str("OKLCH"),
+            ColorSpaceCombo::RGB => f.write_str(&fl!("rgb")),
+            ColorSpaceCombo::HSV => f.write_str(&fl!("hsv")),
+            ColorSpaceCombo::OKLAB => f.write_str(&fl!("oklab")),
+            ColorSpaceCombo::OKLCH => f.write_str(&fl!("oklch")),
         }
     }
 }
