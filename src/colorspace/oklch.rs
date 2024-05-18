@@ -66,16 +66,7 @@ pub struct OKLCH {
 
 impl OKLCH {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
-        let lab = super::oklab::rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
-        let mut lch = [
-            lab[0],
-            (lab[1] * lab[1] + lab[2] * lab[2]).sqrt(),
-            lab[2].atan2(lab[1]).to_degrees(),
-        ];
-
-        if lch[2] < 0.0 {
-            lch[2] = 360.0 + lch[2];
-        }
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
 
         Self {
             strings: [lch[0].to_string(), lch[1].to_string(), lch[2].to_string()],
@@ -84,11 +75,7 @@ impl OKLCH {
     }
 
     pub fn to_rgb(&self) -> [f32; 3] {
-        let h = self.values[2].to_radians();
-        let a = self.values[1] * h.cos();
-        let b = self.values[1] * h.sin();
-
-        super::oklab::oklab_to_rgb(self.values[0], a, b)
+        oklch_to_rgb(self.values[0], self.values[1], self.values[2])
     }
 
     pub fn copy_to_clipboard(&self) -> String {
@@ -179,5 +166,94 @@ impl OKLCH {
             .spacing(10.0);
 
         content.into()
+    }
+}
+
+fn oklch_to_rgb(l: f32, c: f32, h: f32) -> [f32; 3] {
+    let h = h.to_radians();
+    let a = c * h.cos();
+    let b = c * h.sin();
+
+    super::oklab::oklab_to_rgb(l, a, b)
+}
+
+fn rgb_to_oklch(r: f32, g: f32, b: f32) -> [f32; 3] {
+    let lab = super::oklab::rgb_to_oklab(r, g, b);
+    let mut lch = [
+        lab[0],
+        (lab[1] * lab[1] + lab[2] * lab[2]).sqrt(),
+        lab[2].atan2(lab[1]).to_degrees(),
+    ];
+
+    if lch[2] < 0.0 {
+        lch[2] = 360.0 + lch[2];
+    }
+
+    lch
+}
+
+#[cfg(test)]
+mod test {
+    use super::{oklch_to_rgb, rgb_to_oklch};
+
+    #[test]
+    fn white() {
+        let rgb = [1f32; 3];
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lch, &[1.0, 0.0, 90.0]));
+
+        let rgb = oklch_to_rgb(lch[0], lch[1], lch[2]);
+        assert!(aprox_eq(&rgb, &[1f32; 3]));
+    }
+
+    #[test]
+    fn black() {
+        let rgb = [0f32; 3];
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lch, &[0.0, 0.0, 0.0]));
+
+        let rgb = oklch_to_rgb(lch[0], lch[1], lch[2]);
+        assert!(aprox_eq(&rgb, &[0f32; 3]));
+    }
+
+    #[test]
+    fn red() {
+        let rgb = [1f32, 0f32, 0f32];
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lch, &[0.6279554, 0.2576833, 29.233887]));
+
+        let rgb = oklch_to_rgb(lch[0], lch[1], lch[2]);
+        assert!(aprox_eq(&rgb, &[1f32, 0f32, 0f32]));
+    }
+
+    #[test]
+    fn green() {
+        let rgb = [0f32, 1f32, 0f32];
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lch, &[0.8664396, 0.2948271, 142.49532]));
+
+        let rgb = oklch_to_rgb(lch[0], lch[1], lch[2]);
+        assert!(aprox_eq(&rgb, &[0f32, 1f32, 0f32]));
+    }
+
+    #[test]
+    fn blue() {
+        let rgb = [0f32, 0f32, 1f32];
+        let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lch, &[0.4520137, 0.31321436, 264.05203]));
+
+        let rgb = oklch_to_rgb(lch[0], lch[1], lch[2]);
+        assert!(aprox_eq(&rgb, &[0f32, 0f32, 1f32]));
+    }
+
+    fn aprox_eq(a: &[f32; 3], b: &[f32; 3]) -> bool {
+        const EPSILON: f32 = 1e-4;
+
+        a[0] > b[0] - EPSILON
+            && a[0] < b[0] + EPSILON
+            && a[1] > b[1] - EPSILON
+            && a[1] < b[1] + EPSILON
+            && a[2] > b[2] - EPSILON
+            && a[2] < b[2] + EPSILON
     }
 }

@@ -182,3 +182,69 @@ pub fn rgb_to_oklab(r: f32, g: f32, b: f32) -> [f32; 3] {
         0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_,
     ]
 }
+
+#[cfg(test)]
+mod test {
+    use super::{oklab_to_rgb, rgb_to_oklab};
+
+    #[test]
+    fn white() {
+        let rgb = [1f32; 3];
+        let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lab, &[1.0, 0.0, 0.0]));
+
+        let rgb = oklab_to_rgb(lab[0], lab[1], lab[2]);
+        assert!(aprox_eq(&rgb, &[1f32; 3]));
+    }
+
+    #[test]
+    fn black() {
+        let rgb = [0f32; 3];
+        let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lab, &[0.0, 0.0, 0.0]));
+
+        let rgb = oklab_to_rgb(lab[0], lab[1], lab[2]);
+        assert!(aprox_eq(&rgb, &[0f32; 3]));
+    }
+
+    #[test]
+    fn red() {
+        let rgb = [1f32, 0f32, 0f32];
+        let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lab, &[0.6279554, 0.22486305, 0.1258463]));
+
+        let rgb = oklab_to_rgb(lab[0], lab[1], lab[2]);
+        assert!(aprox_eq(&rgb, &[1f32, 0f32, 0f32]));
+    }
+
+    #[test]
+    fn green() {
+        let rgb = [0f32, 1f32, 0f32];
+        let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lab, &[0.8664396, -0.2338874, 0.1794985]));
+
+        let rgb = oklab_to_rgb(lab[0], lab[1], lab[2]);
+        assert!(aprox_eq(&rgb, &[0f32, 1f32, 0f32]));
+    }
+
+    #[test]
+    fn blue() {
+        let rgb = [0f32, 0f32, 1f32];
+        let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&lab, &[0.4520137, -0.032456964, -0.31152815]));
+
+        let rgb = oklab_to_rgb(lab[0], lab[1], lab[2]);
+        assert!(aprox_eq(&rgb, &[0f32, 0f32, 1f32]));
+    }
+
+    fn aprox_eq(a: &[f32; 3], b: &[f32; 3]) -> bool {
+        const EPSILON: f32 = 1e-4;
+
+        a[0] > b[0] - EPSILON
+            && a[0] < b[0] + EPSILON
+            && a[1] > b[1] - EPSILON
+            && a[1] < b[1] + EPSILON
+            && a[2] > b[2] - EPSILON
+            && a[2] < b[2] + EPSILON
+    }
+}

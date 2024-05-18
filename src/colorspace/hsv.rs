@@ -66,56 +66,16 @@ pub struct HSV {
 
 impl HSV {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
-        let x_max = rgb[0].max(rgb[1]).max(rgb[2]);
-        let x_min = rgb[0].min(rgb[1]).min(rgb[2]);
-        let c = x_max - x_min;
-        let mut h = if c == 0.0 {
-            0.0
-        } else if x_max == rgb[0] {
-            60.0 * ((rgb[1] - rgb[2]) / c % 6.0)
-        } else if x_max == rgb[1] {
-            60.0 * ((rgb[2] - rgb[0]) / c + 2.0)
-        } else if x_max == rgb[2] {
-            60.0 * ((rgb[0] - rgb[1]) / c + 4.0)
-        } else {
-            // Default to (c = 0)
-            0.0
-        };
-
-        if h < 0.0 {
-            h = 360.0 + h;
-        }
-
-        let s = if x_max == 0.0 { 0.0 } else { c / x_max };
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
 
         Self {
-            strings: [h.to_string(), s.to_string(), x_max.to_string()],
-            values: [h, s, x_max],
+            strings: [hsv[0].to_string(), hsv[1].to_string(), hsv[2].to_string()],
+            values: hsv,
         }
     }
 
     pub fn to_rgb(&self) -> [f32; 3] {
-        let c = self.values[2] * self.values[1];
-        let h_ = self.values[0] / 60.0;
-        let x = c * (1.0 - (h_ % 2.0 - 1.0).abs());
-
-        let (r1, g1, b1) = if 0.0 <= h_ && h_ < 1.0 {
-            (c, x, 0.0)
-        } else if 1.0 <= h_ && h_ < 2.0 {
-            (x, c, 0.0)
-        } else if 2.0 <= h_ && h_ < 3.0 {
-            (0.0, c, x)
-        } else if 3.0 <= h_ && h_ < 4.0 {
-            (0.0, x, c)
-        } else if 4.0 <= h_ && h_ < 5.0 {
-            (x, 0.0, c)
-        } else {
-            // otherwise (5.0 <= h' < 6.0)
-            (c, 0.0, x)
-        };
-
-        let m = self.values[2] - c;
-        [r1 + m, g1 + m, b1 + m]
+        hsv_to_rgb(self.values[0], self.values[1], self.values[2])
     }
 
     pub fn copy_to_clipboard(&self) -> String {
@@ -206,5 +166,121 @@ impl HSV {
             .spacing(10.0);
 
         content.into()
+    }
+}
+
+fn hsv_to_rgb(h: f32, s: f32, v: f32) -> [f32; 3] {
+    let c = v * s;
+    let h_ = h / 60.0;
+    let x = c * (1.0 - (h_ % 2.0 - 1.0).abs());
+
+    let (r1, g1, b1) = if 0.0 <= h_ && h_ < 1.0 {
+        (c, x, 0.0)
+    } else if 1.0 <= h_ && h_ < 2.0 {
+        (x, c, 0.0)
+    } else if 2.0 <= h_ && h_ < 3.0 {
+        (0.0, c, x)
+    } else if 3.0 <= h_ && h_ < 4.0 {
+        (0.0, x, c)
+    } else if 4.0 <= h_ && h_ < 5.0 {
+        (x, 0.0, c)
+    } else {
+        // otherwise (5.0 <= h' < 6.0)
+        (c, 0.0, x)
+    };
+
+    let m = v - c;
+    [r1 + m, g1 + m, b1 + m]
+}
+
+fn rgb_to_hsv(r: f32, g: f32, b: f32) -> [f32; 3] {
+    let x_max = r.max(g).max(b);
+    let x_min = r.min(g).min(b);
+    let c = x_max - x_min;
+    let mut h = if c == 0.0 {
+        0.0
+    } else if x_max == r {
+        60.0 * ((g - b) / c % 6.0)
+    } else if x_max == g {
+        60.0 * ((b - r) / c + 2.0)
+    } else if x_max == b {
+        60.0 * ((r - g) / c + 4.0)
+    } else {
+        // Default to (c = 0)
+        0.0
+    };
+
+    if h < 0.0 {
+        h = 360.0 + h;
+    }
+
+    let s = if x_max == 0.0 { 0.0 } else { c / x_max };
+
+    [h, s, x_max]
+}
+
+#[cfg(test)]
+mod test {
+    use super::{hsv_to_rgb, rgb_to_hsv};
+
+    #[test]
+    fn white() {
+        let rgb = [1f32; 3];
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&hsv, &[0.0, 0.0, 1.0]));
+
+        let rgb = hsv_to_rgb(hsv[0], hsv[1], hsv[2]);
+        assert!(aprox_eq(&rgb, &[1f32; 3]));
+    }
+
+    #[test]
+    fn black() {
+        let rgb = [0f32; 3];
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&hsv, &[0.0, 0.0, 0.0]));
+
+        let rgb = hsv_to_rgb(hsv[0], hsv[1], hsv[2]);
+        assert!(aprox_eq(&rgb, &[0f32; 3]));
+    }
+
+    #[test]
+    fn red() {
+        let rgb = [1f32, 0f32, 0f32];
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&hsv, &[0.0, 1.0, 1.0]));
+
+        let rgb = hsv_to_rgb(hsv[0], hsv[1], hsv[2]);
+        assert!(aprox_eq(&rgb, &[1f32, 0f32, 0f32]));
+    }
+
+    #[test]
+    fn green() {
+        let rgb = [0f32, 1f32, 0f32];
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&hsv, &[120.0, 1.0, 1.0]));
+
+        let rgb = hsv_to_rgb(hsv[0], hsv[1], hsv[2]);
+        assert!(aprox_eq(&rgb, &[0.0, 1.0, 0.0]));
+    }
+
+    #[test]
+    fn blue() {
+        let rgb = [0f32, 0f32, 1f32];
+        let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
+        assert!(aprox_eq(&hsv, &[240.0, 1.0, 1.0]));
+
+        let rgb = hsv_to_rgb(hsv[0], hsv[1], hsv[2]);
+        assert!(aprox_eq(&rgb, &[0f32, 0f32, 1f32]));
+    }
+
+    fn aprox_eq(a: &[f32; 3], b: &[f32; 3]) -> bool {
+        const EPSILON: f32 = 1e-4;
+
+        a[0] > b[0] - EPSILON
+            && a[0] < b[0] + EPSILON
+            && a[1] > b[1] - EPSILON
+            && a[1] < b[1] + EPSILON
+            && a[2] > b[2] - EPSILON
+            && a[2] < b[2] + EPSILON
     }
 }
