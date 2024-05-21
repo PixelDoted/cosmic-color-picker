@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::collections::HashMap;
+
 use crate::colorspace::{ColorSpace, ColorSpaceCombo, ColorSpaceMessage};
 use crate::fl;
 use crate::widgets::color_block;
@@ -9,6 +11,8 @@ use cosmic::iced::keyboard::{Key, Modifiers};
 use cosmic::iced::{clipboard, Length};
 use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscription};
 use cosmic::iced_widget::scrollable::{Direction, Properties};
+use cosmic::widget::menu::{self, action::MenuAction, MenuBar};
+use cosmic::widget::segmented_button::Entity;
 use cosmic::{theme, widget, Application, Element};
 use log::info;
 
@@ -33,8 +37,26 @@ pub enum Message {
     AddSpace,
     RemoveSpace(usize),
 
+    ToggleAboutPage,
+    LaunchUrl(String),
+
     CopyToClipboard(usize),
     Key(Key, Modifiers),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum Action {
+    About,
+}
+
+impl MenuAction for Action {
+    type Message = Message;
+
+    fn message(&self, _entity: Option<Entity>) -> Message {
+        match self {
+            Action::About => Message::ToggleAboutPage,
+        }
+    }
 }
 
 impl Application for ColorPicker {
@@ -52,6 +74,17 @@ impl Application for ColorPicker {
 
     fn core_mut(&mut self) -> &mut Core {
         &mut self.core
+    }
+
+    fn header_start(&self) -> Vec<Element<Self::Message>> {
+        vec![MenuBar::new(vec![menu::Tree::with_children(
+            menu::root(fl!("view")),
+            menu::items(
+                &HashMap::new(),
+                vec![menu::Item::Button(fl!("menu-about"), Action::About)],
+            ),
+        )])
+        .into()]
     }
 
     fn header_center(&self) -> Vec<Element<Self::Message>> {
@@ -99,6 +132,16 @@ impl Application for ColorPicker {
             Message::RemoveSpace(index) => {
                 self.spaces.remove(index);
             }
+
+            Message::ToggleAboutPage => {
+                self.core.window.show_context = !self.core.window.show_context;
+            }
+            Message::LaunchUrl(url) => match open::that_detached(&url) {
+                Ok(()) => {}
+                Err(e) => {
+                    log::warn!("Failed to open {:?}: {}", url, e);
+                }
+            },
 
             Message::CopyToClipboard(index) => {
                 return self.copy_to_clipboard(index);
@@ -203,6 +246,14 @@ impl Application for ColorPicker {
             .into()
     }
 
+    fn context_drawer(&self) -> Option<Element<Self::Message>> {
+        if !self.core.window.show_context {
+            return None;
+        }
+
+        Some(self.about())
+    }
+
     fn subscription(&self) -> Subscription<Self::Message> {
         Subscription::batch(vec![event::listen_with(|event, status| match event {
             Event::Keyboard(KeyEvent::KeyPressed { key, modifiers, .. }) => match status {
@@ -225,5 +276,33 @@ impl ColorPicker {
 
         info!("Copying \"{}\" to clipboard", contents);
         clipboard::write(contents)
+    }
+
+    fn about(&self) -> cosmic::Element<Message> {
+        let repository = "https://github.com/PixelDoted/cosmic-color-picker";
+        let hash = env!("VERGEN_GIT_SHA");
+        let short_hash = &hash[0..7];
+        let date = env!("VERGEN_GIT_COMMIT_DATE");
+        widget::column::with_capacity(4)
+            .push(widget::svg(widget::svg::Handle::from_memory(
+                &include_bytes!(
+                    "../res/icons/hicolor/128x128/apps/me.pixeldoted.CosmicColorPicker.svg"
+                )[..],
+            )))
+            .push(widget::text::title3(fl!("app-title")))
+            .push(
+                widget::button::link(repository)
+                    .on_press(Message::LaunchUrl(repository.to_string()))
+                    .padding(0),
+            )
+            .push(
+                widget::button::link(fl!("git-description", hash = short_hash, date = date))
+                    .on_press(Message::LaunchUrl(format!(
+                        "{}/commits/{}",
+                        repository, hash
+                    )))
+                    .padding(0),
+            )
+            .into()
     }
 }

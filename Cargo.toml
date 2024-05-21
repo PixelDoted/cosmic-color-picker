@@ -8,6 +8,7 @@ license = "GPL-3.0"
 i18n-embed-fl = "0.8"
 log = "0.4.21"
 once_cell = "1.19.0"
+open = "5.1.3"
 rust-embed = "8.3.0"
 
 [dependencies.libcosmic]
@@ -18,3 +19,6 @@ features = ["dbus-config", "tokio", "winit", "wgpu"]
 [dependencies.i18n-embed]
 version = "0.14"
 features = ["fluent-system", "desktop-requester"]
+
+[build-dependencies]
+vergen = { version = "8.3.1", features = ["git", "gitcl"] }
