@@ -64,10 +64,10 @@ impl Application for ColorPicker {
             last_edited: 0,
 
             colorspace_combo: widget::combo_box::State::new(vec![
-                ColorSpaceCombo::RGB,
-                ColorSpaceCombo::HSV,
-                ColorSpaceCombo::OKLAB,
-                ColorSpaceCombo::OKLCH,
+                ColorSpaceCombo::Rgb,
+                ColorSpaceCombo::Hsv,
+                ColorSpaceCombo::Oklab,
+                ColorSpaceCombo::Oklch,
             ]),
             core,
         };
@@ -78,25 +78,21 @@ impl Application for ColorPicker {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::ColorSpace { index: i, message } => match message {
-                ColorSpaceMessage::ChangeValue { index, value } => match &mut self.spaces[i] {
-                    ColorSpace::RGB(rgb) => rgb.change_value(index, value),
-                    ColorSpace::HSV(hsv) => hsv.change_value(index, value),
-                    ColorSpace::OKLAB(oklab) => oklab.change_value(index, value),
-                    ColorSpace::OKLCH(oklch) => oklch.change_value(index, value),
-                },
-                ColorSpaceMessage::ChangeString { index, string } => match &mut self.spaces[i] {
-                    ColorSpace::RGB(rgb) => rgb.change_string(index, string),
-                    ColorSpace::HSV(hsv) => hsv.change_string(index, string),
-                    ColorSpace::OKLAB(oklab) => oklab.change_string(index, string),
-                    ColorSpace::OKLCH(oklch) => oklch.change_string(index, string),
-                },
+                ColorSpaceMessage::ChangeValue { index, value } => {
+                    self.spaces[i].change_value(index, value);
+                }
+                ColorSpaceMessage::ChangeString { index, string } => {
+                    self.spaces[i].change_string(index, string);
+                }
             },
-            Message::ChangeColorSpace { index, selected } => match selected {
-                ColorSpaceCombo::RGB => self.spaces[index].to_rgb(),
-                ColorSpaceCombo::HSV => self.spaces[index].to_hsv(),
-                ColorSpaceCombo::OKLAB => self.spaces[index].to_oklab(),
-                ColorSpaceCombo::OKLCH => self.spaces[index].to_oklch(),
-            },
+            Message::ChangeColorSpace { index, selected } => {
+                self.spaces[index] = match selected {
+                    ColorSpaceCombo::Rgb => self.spaces[index].to_rgb(),
+                    ColorSpaceCombo::Hsv => self.spaces[index].to_hsv(),
+                    ColorSpaceCombo::Oklab => self.spaces[index].to_oklab(),
+                    ColorSpaceCombo::Oklch => self.spaces[index].to_oklch(),
+                };
+            }
             Message::AddSpace => {
                 self.spaces.push(ColorSpace::default());
             }
@@ -122,10 +118,10 @@ impl Application for ColorPicker {
 
         for (colorspace, index) in self.spaces.iter().zip(0..) {
             let (rgb, content, combo_selection) = match colorspace {
-                ColorSpace::RGB(rgb) => (rgb.to_rgb(), rgb.view(), ColorSpaceCombo::RGB),
-                ColorSpace::HSV(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::HSV),
-                ColorSpace::OKLAB(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::OKLAB),
-                ColorSpace::OKLCH(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::OKLCH),
+                ColorSpace::Rgb(rgb) => (rgb.to_rgb(), rgb.view(), ColorSpaceCombo::Rgb),
+                ColorSpace::Hsv(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::Hsv),
+                ColorSpace::Oklab(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::Oklab),
+                ColorSpace::Oklch(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::Oklch),
             };
 
             let min_rgb = rgb[0].min(rgb[1]).min(rgb[2]).min(0.0);
@@ -140,14 +136,16 @@ impl Application for ColorPicker {
                 widget::column::with_capacity(3)
                     .push(
                         widget::row::with_capacity(2)
-                            .push(color_block(
-                                Color::from_rgb(rgb[0], rgb[1], rgb[2]),
-                                [true, false, false, true],
-                            ))
-                            .push(color_block(
-                                Color::from_rgb(norm_rgb[0], norm_rgb[1], norm_rgb[2]),
-                                [false, true, true, false],
-                            )),
+                            .push(
+                                color_block(Color::from_rgb(rgb[0], rgb[1], rgb[2]))
+                                    .border([true, false, false, true])
+                                    .height(100.0),
+                            )
+                            .push(
+                                color_block(Color::from_rgb(norm_rgb[0], norm_rgb[1], norm_rgb[2]))
+                                    .border([false, true, true, false])
+                                    .height(100.0),
+                            ),
                     )
                     .push(
                         widget::row::with_capacity(3)
@@ -219,10 +217,10 @@ impl Application for ColorPicker {
 impl ColorPicker {
     fn copy_to_clipboard(&self, index: usize) -> Command<Message> {
         let contents = match &self.spaces[index] {
-            ColorSpace::RGB(rgb) => rgb.copy_to_clipboard(),
-            ColorSpace::HSV(hsv) => hsv.copy_to_clipboard(),
-            ColorSpace::OKLAB(oklab) => oklab.copy_to_clipboard(),
-            ColorSpace::OKLCH(oklch) => oklch.copy_to_clipboard(),
+            ColorSpace::Rgb(rgb) => rgb.copy_to_clipboard(),
+            ColorSpace::Hsv(hsv) => hsv.copy_to_clipboard(),
+            ColorSpace::Oklab(oklab) => oklab.copy_to_clipboard(),
+            ColorSpace::Oklch(oklch) => oklch.copy_to_clipboard(),
         };
 
         info!("Copying \"{}\" to clipboard", contents);

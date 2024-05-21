@@ -12,33 +12,76 @@ use cosmic::{
     },
 };
 
-pub fn color_block<'a, Message>(color: Color, border: [bool; 4]) -> cosmic::Element<'a, Message>
-where
-    Message: Clone + 'a,
-{
-    widget::container(widget::vertical_space(100.0))
-        .style(theme::Container::custom(move |theme| {
-            let cosmic = theme.cosmic();
-            let radius = cosmic.corner_radii.radius_xs;
+pub struct ColorBlock {
+    color: Color,
+    border: [bool; 4],
+    width: Length,
+    height: Length,
+}
 
-            cosmic::iced_style::container::Appearance {
-                background: Some(color.into()),
-                border: Border {
-                    radius: [
-                        radius[0] * (border[0] as i8) as f32,
-                        radius[1] * (border[1] as i8) as f32,
-                        radius[2] * (border[2] as i8) as f32,
-                        radius[3] * (border[3] as i8) as f32,
-                    ]
-                    .into(),
-                    color,
+impl ColorBlock {
+    pub fn new(color: Color) -> Self {
+        Self {
+            color,
+            border: [true; 4],
+            width: Length::Fill,
+            height: Length::Fill,
+        }
+    }
+
+    pub fn border(mut self, border: [bool; 4]) -> Self {
+        self.border = border;
+        self
+    }
+
+    pub fn width(mut self, width: impl Into<Length>) -> Self {
+        self.width = width.into();
+        self
+    }
+
+    pub fn height(mut self, height: impl Into<Length>) -> Self {
+        self.height = height.into();
+        self
+    }
+}
+
+impl<'a, Message: 'a> From<ColorBlock> for cosmic::Element<'a, Message> {
+    fn from(value: ColorBlock) -> Self {
+        let ColorBlock {
+            color,
+            border,
+            width,
+            height,
+        } = value;
+
+        widget::container(widget::vertical_space(height))
+            .style(theme::Container::custom(move |theme| {
+                let cosmic = theme.cosmic();
+                let radius = cosmic.corner_radii.radius_xs;
+
+                cosmic::iced_style::container::Appearance {
+                    background: Some(value.color.into()),
+                    border: Border {
+                        radius: [
+                            radius[0] * (border[0] as i8) as f32,
+                            radius[1] * (border[1] as i8) as f32,
+                            radius[2] * (border[2] as i8) as f32,
+                            radius[3] * (border[3] as i8) as f32,
+                        ]
+                        .into(),
+                        color,
+                        ..Default::default()
+                    },
                     ..Default::default()
-                },
-                ..Default::default()
-            }
-        }))
-        .width(Length::Fill)
-        .into()
+                }
+            }))
+            .width(width)
+            .into()
+    }
+}
+
+pub fn color_block(color: Color) -> ColorBlock {
+    ColorBlock::new(color)
 }
 
 pub fn color_slider<'a, Message>(

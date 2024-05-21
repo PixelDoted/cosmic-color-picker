@@ -59,12 +59,12 @@ const COLOR_STOPS_VALUE: [ColorStop; 2] = [
 ];
 
 #[derive(Clone)]
-pub struct HSV {
+pub struct Hsv {
     pub values: [f32; 3],
     pub strings: [String; 3],
 }
 
-impl HSV {
+impl Hsv {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
         let hsv = rgb_to_hsv(rgb[0], rgb[1], rgb[2]);
 
@@ -83,7 +83,7 @@ impl HSV {
     }
 }
 
-impl HSV {
+impl Hsv {
     pub fn change_value(&mut self, index: usize, value: f32) {
         self.values[index] = value;
         self.strings[index] = value.to_string();
@@ -174,20 +174,35 @@ fn hsv_to_rgb(h: f32, s: f32, v: f32) -> [f32; 3] {
     let h_ = h / 60.0;
     let x = c * (1.0 - (h_ % 2.0 - 1.0).abs());
 
-    let (r1, g1, b1) = if 0.0 <= h_ && h_ < 1.0 {
+    let (r1, g1, b1) = if (0.0..1.0).contains(&h_) {
         (c, x, 0.0)
-    } else if 1.0 <= h_ && h_ < 2.0 {
+    } else if (1.0..2.0).contains(&h_) {
         (x, c, 0.0)
-    } else if 2.0 <= h_ && h_ < 3.0 {
+    } else if (2.0..3.0).contains(&h_) {
         (0.0, c, x)
-    } else if 3.0 <= h_ && h_ < 4.0 {
+    } else if (3.0..4.0).contains(&h_) {
         (0.0, x, c)
-    } else if 4.0 <= h_ && h_ < 5.0 {
+    } else if (4.0..5.0).contains(&h_) {
         (x, 0.0, c)
     } else {
         // otherwise (5.0 <= h' < 6.0)
         (c, 0.0, x)
     };
+
+    // let (r1, g1, b1) = if 0.0 <= h_ && h_ < 1.0 {
+    //     (c, x, 0.0)
+    // } else if 1.0 <= h_ && h_ < 2.0 {
+    //     (x, c, 0.0)
+    // } else if 2.0 <= h_ && h_ < 3.0 {
+    //     (0.0, c, x)
+    // } else if 3.0 <= h_ && h_ < 4.0 {
+    //     (0.0, x, c)
+    // } else if 4.0 <= h_ && h_ < 5.0 {
+    //     (x, 0.0, c)
+    // } else {
+    //     // otherwise (5.0 <= h' < 6.0)
+    //     (c, 0.0, x)
+    // };
 
     let m = v - c;
     [r1 + m, g1 + m, b1 + m]
@@ -211,7 +226,7 @@ fn rgb_to_hsv(r: f32, g: f32, b: f32) -> [f32; 3] {
     };
 
     if h < 0.0 {
-        h = 360.0 + h;
+        h += 360.0;
     }
 
     let s = if x_max == 0.0 { 0.0 } else { c / x_max };

@@ -59,12 +59,12 @@ const COLOR_STOPS_HUE: [ColorStop; 7] = [
 ];
 
 #[derive(Clone)]
-pub struct OKLCH {
+pub struct Oklch {
     pub values: [f32; 3],
     pub strings: [String; 3],
 }
 
-impl OKLCH {
+impl Oklch {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
         let lch = rgb_to_oklch(rgb[0], rgb[1], rgb[2]);
 
@@ -83,7 +83,7 @@ impl OKLCH {
     }
 }
 
-impl OKLCH {
+impl Oklch {
     pub fn change_value(&mut self, index: usize, value: f32) {
         self.values[index] = value;
         self.strings[index] = value.to_string();
@@ -186,7 +186,7 @@ fn rgb_to_oklch(r: f32, g: f32, b: f32) -> [f32; 3] {
     ];
 
     if lch[2] < 0.0 {
-        lch[2] = 360.0 + lch[2];
+        lch[2] += 360.0;
     }
 
     lch

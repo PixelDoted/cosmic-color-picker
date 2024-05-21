@@ -7,10 +7,10 @@ mod rgb;
 
 use std::fmt::Display;
 
-pub use hsv::HSV;
-pub use oklab::OKLAB;
-pub use oklch::OKLCH;
-pub use rgb::RGB;
+pub use hsv::Hsv;
+pub use oklab::Oklab;
+pub use oklch::Oklch;
+pub use rgb::Rgb;
 
 use crate::fl;
 
@@ -23,66 +23,83 @@ pub enum ColorSpaceMessage {
 #[derive(Clone, Default, Debug)]
 pub enum ColorSpaceCombo {
     #[default]
-    RGB,
-    HSV,
-    OKLAB,
-    OKLCH,
+    Rgb,
+    Hsv,
+    Oklab,
+    Oklch,
 }
 
 impl Display for ColorSpaceCombo {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ColorSpaceCombo::RGB => f.write_str(&fl!("rgb")),
-            ColorSpaceCombo::HSV => f.write_str(&fl!("hsv")),
-            ColorSpaceCombo::OKLAB => f.write_str(&fl!("oklab")),
-            ColorSpaceCombo::OKLCH => f.write_str(&fl!("oklch")),
+            ColorSpaceCombo::Rgb => f.write_str(&fl!("rgb")),
+            ColorSpaceCombo::Hsv => f.write_str(&fl!("hsv")),
+            ColorSpaceCombo::Oklab => f.write_str(&fl!("oklab")),
+            ColorSpaceCombo::Oklch => f.write_str(&fl!("oklch")),
         }
     }
 }
 
 pub enum ColorSpace {
-    RGB(RGB),
-    HSV(HSV),
-    OKLAB(OKLAB),
-    OKLCH(OKLCH),
+    Rgb(Rgb),
+    Hsv(Hsv),
+    Oklab(Oklab),
+    Oklch(Oklch),
 }
 
 impl Default for ColorSpace {
     fn default() -> Self {
-        Self::RGB(rgb::RGB {
-            values: [1.0; 3],
-            strings: ["1".into(), "1".into(), "1".into()],
-        })
+        Self::Rgb(Rgb::from_rgb([1.0; 3]))
     }
 }
 
 impl ColorSpace {
-    pub fn to_rgb(&mut self) {
-        let rgb = self.get_rgb();
-        *self = Self::RGB(rgb::RGB::from_rgb(rgb));
-    }
-
-    pub fn to_hsv(&mut self) {
-        let rgb = self.get_rgb();
-        *self = Self::HSV(hsv::HSV::from_rgb(rgb));
-    }
-
-    pub fn to_oklab(&mut self) {
-        let rgb = self.get_rgb();
-        *self = Self::OKLAB(oklab::OKLAB::from_rgb(rgb));
-    }
-
-    pub fn to_oklch(&mut self) {
-        let rgb = self.get_rgb();
-        *self = Self::OKLCH(oklch::OKLCH::from_rgb(rgb));
-    }
-
-    fn get_rgb(&self) -> [f32; 3] {
+    pub fn change_value(&mut self, index: usize, value: f32) {
         match self {
-            ColorSpace::RGB(rgb) => rgb.to_rgb(),
-            ColorSpace::HSV(hsv) => hsv.to_rgb(),
-            ColorSpace::OKLAB(oklab) => oklab.to_rgb(),
-            ColorSpace::OKLCH(oklch) => oklch.to_rgb(),
+            ColorSpace::Rgb(rgb) => rgb.change_value(index, value),
+            ColorSpace::Hsv(hsv) => hsv.change_value(index, value),
+            ColorSpace::Oklab(oklab) => oklab.change_value(index, value),
+            ColorSpace::Oklch(oklch) => oklch.change_value(index, value),
+        }
+    }
+
+    pub fn change_string(&mut self, index: usize, string: String) {
+        match self {
+            ColorSpace::Rgb(rgb) => rgb.change_string(index, string),
+            ColorSpace::Hsv(hsv) => hsv.change_string(index, string),
+            ColorSpace::Oklab(oklab) => oklab.change_string(index, string),
+            ColorSpace::Oklch(oklch) => oklch.change_string(index, string),
+        }
+    }
+}
+
+impl ColorSpace {
+    pub fn to_rgb(&self) -> ColorSpace {
+        let rgb = self.get_rgb();
+        Self::Rgb(rgb::Rgb::from_rgb(rgb))
+    }
+
+    pub fn to_hsv(&self) -> ColorSpace {
+        let rgb = self.get_rgb();
+        Self::Hsv(hsv::Hsv::from_rgb(rgb))
+    }
+
+    pub fn to_oklab(&self) -> ColorSpace {
+        let rgb = self.get_rgb();
+        Self::Oklab(oklab::Oklab::from_rgb(rgb))
+    }
+
+    pub fn to_oklch(&self) -> ColorSpace {
+        let rgb = self.get_rgb();
+        Self::Oklch(oklch::Oklch::from_rgb(rgb))
+    }
+
+    pub fn get_rgb(&self) -> [f32; 3] {
+        match self {
+            ColorSpace::Rgb(rgb) => rgb.to_rgb(),
+            ColorSpace::Hsv(hsv) => hsv.to_rgb(),
+            ColorSpace::Oklab(oklab) => oklab.to_rgb(),
+            ColorSpace::Oklch(oklch) => oklch.to_rgb(),
         }
     }
 }

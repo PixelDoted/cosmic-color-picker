@@ -39,12 +39,12 @@ const COLOR_STOPS_BLUE_YELLOW: [ColorStop; 2] = [
 ];
 
 #[derive(Clone)]
-pub struct OKLAB {
+pub struct Oklab {
     pub values: [f32; 3],
     pub strings: [String; 3],
 }
 
-impl OKLAB {
+impl Oklab {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
         let lab = rgb_to_oklab(rgb[0], rgb[1], rgb[2]);
 
@@ -63,7 +63,7 @@ impl OKLAB {
     }
 }
 
-impl OKLAB {
+impl Oklab {
     pub fn change_value(&mut self, index: usize, value: f32) {
         self.values[index] = value;
         self.strings[index] = value.to_string();
@@ -150,6 +150,7 @@ impl OKLAB {
 }
 
 // https://bottosson.github.io/posts/oklab/
+#[allow(clippy::excessive_precision)]
 pub fn oklab_to_rgb(l: f32, a: f32, b: f32) -> [f32; 3] {
     let l_ = l + 0.3963377774 * a + 0.2158037573 * b;
     let m_ = l - 0.1055613458 * a - 0.0638541728 * b;
@@ -167,6 +168,7 @@ pub fn oklab_to_rgb(l: f32, a: f32, b: f32) -> [f32; 3] {
 }
 
 // https://bottosson.github.io/posts/oklab/
+#[allow(clippy::excessive_precision)]
 pub fn rgb_to_oklab(r: f32, g: f32, b: f32) -> [f32; 3] {
     let l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
     let m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;

@@ -39,12 +39,12 @@ const COLOR_STOPS_BLUE: [ColorStop; 2] = [
 ];
 
 #[derive(Clone)]
-pub struct RGB {
+pub struct Rgb {
     pub values: [f32; 3],
     pub strings: [String; 3],
 }
 
-impl Default for RGB {
+impl Default for Rgb {
     fn default() -> Self {
         Self {
             values: [1.0; 3],
@@ -53,7 +53,7 @@ impl Default for RGB {
     }
 }
 
-impl RGB {
+impl Rgb {
     pub fn from_rgb(rgb: [f32; 3]) -> Self {
         Self {
             strings: [rgb[0].to_string(), rgb[1].to_string(), rgb[2].to_string()],
@@ -62,7 +62,7 @@ impl RGB {
     }
 
     pub fn to_rgb(&self) -> [f32; 3] {
-        self.values.clone()
+        self.values
     }
 
     pub fn copy_to_clipboard(&self) -> String {
@@ -70,7 +70,7 @@ impl RGB {
     }
 }
 
-impl RGB {
+impl Rgb {
     pub fn change_value(&mut self, index: usize, value: f32) {
         self.values[index] = value;
         self.strings[index] = value.to_string();
