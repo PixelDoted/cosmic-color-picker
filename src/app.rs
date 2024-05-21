@@ -13,7 +13,7 @@ use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscriptio
 use cosmic::iced_widget::scrollable::{Direction, Properties};
 use cosmic::widget::menu::{self, action::MenuAction, MenuBar};
 use cosmic::widget::segmented_button::Entity;
-use cosmic::{theme, widget, Application, Element};
+use cosmic::{theme, widget, Application, ApplicationExt, Element};
 use log::info;
 
 pub struct ColorPicker {
@@ -92,7 +92,7 @@ impl Application for ColorPicker {
     }
 
     fn init(core: Core, _flags: Self::Flags) -> (Self, Command<Self::Message>) {
-        let example = ColorPicker {
+        let mut app = ColorPicker {
             spaces: vec![ColorSpace::default()],
             last_edited: 0,
 
@@ -105,7 +105,8 @@ impl Application for ColorPicker {
             core,
         };
 
-        (example, Command::none())
+        let command = app.set_window_title(fl!("app-title"));
+        (app, command)
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
