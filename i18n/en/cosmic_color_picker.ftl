@@ -12,15 +12,22 @@ rgb = RGB
 hsv = HSV
 oklab = OKLAB
 oklch = OKLCH
+cmyk = CMYK
 
-## Values
+## Colors
 red = Red
 green = Green
 blue = Blue
+green-red = Green-Red
+blue-yellow = Blue-Yellow
+cyan = Cyan
+magenta = Magenta
+yellow = Yellow
+black = Black
+
+## Values
 hue = Hue
 saturation = Saturation
 lightness = Lightness
 value = Value
 chroma = Chroma
-green-red = Green-Red
-blue-yellow = Blue-Yellow

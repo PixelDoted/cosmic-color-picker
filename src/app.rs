@@ -13,7 +13,7 @@ use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscriptio
 use cosmic::iced_widget::scrollable::{Direction, Properties};
 use cosmic::widget::menu::{self, action::MenuAction, MenuBar};
 use cosmic::widget::segmented_button::Entity;
-use cosmic::{theme, widget, Application, ApplicationExt, Element};
+use cosmic::{theme, widget, Application, ApplicationExt, Apply, Element};
 use log::info;
 
 pub struct ColorPicker {
@@ -101,6 +101,7 @@ impl Application for ColorPicker {
                 ColorSpaceCombo::Hsv,
                 ColorSpaceCombo::Oklab,
                 ColorSpaceCombo::Oklch,
+                ColorSpaceCombo::Cmyk,
             ]),
             core,
         };
@@ -125,6 +126,7 @@ impl Application for ColorPicker {
                     ColorSpaceCombo::Hsv => self.spaces[index].to_hsv(),
                     ColorSpaceCombo::Oklab => self.spaces[index].to_oklab(),
                     ColorSpaceCombo::Oklch => self.spaces[index].to_oklch(),
+                    ColorSpaceCombo::Cmyk => self.spaces[index].to_cmyk(),
                 };
             }
             Message::AddSpace => {
@@ -166,6 +168,7 @@ impl Application for ColorPicker {
                 ColorSpace::Hsv(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::Hsv),
                 ColorSpace::Oklab(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::Oklab),
                 ColorSpace::Oklch(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::Oklch),
+                ColorSpace::Cmyk(cmyk) => (cmyk.to_rgb(), cmyk.view(), ColorSpaceCombo::Cmyk),
             };
 
             let min_rgb = rgb[0].min(rgb[1]).min(rgb[2]).min(0.0);
@@ -220,7 +223,11 @@ impl Application for ColorPicker {
             contents = contents.push(widget::container(
                 widget::column::with_capacity(2)
                     .push(sidebar)
-                    .push(content.map(move |message| Message::ColorSpace { index, message }))
+                    .push(
+                        content
+                            .map(move |message| Message::ColorSpace { index, message })
+                            .apply(widget::scrollable),
+                    )
                     .spacing(10.0)
                     .padding(10.0)
                     .width(300.0),
@@ -273,6 +280,7 @@ impl ColorPicker {
             ColorSpace::Hsv(hsv) => hsv.copy_to_clipboard(),
             ColorSpace::Oklab(oklab) => oklab.copy_to_clipboard(),
             ColorSpace::Oklch(oklch) => oklch.copy_to_clipboard(),
+            ColorSpace::Cmyk(cmyk) => cmyk.copy_to_clipboard(),
         };
 
         info!("Copying \"{}\" to clipboard", contents);
