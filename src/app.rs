@@ -12,7 +12,6 @@ use cosmic::iced::{clipboard, Length};
 use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscription};
 use cosmic::iced_widget::scrollable::{Direction, Properties};
 use cosmic::widget::menu::{self, action::MenuAction, MenuBar};
-use cosmic::widget::segmented_button::Entity;
 use cosmic::{theme, widget, Application, ApplicationExt, Apply, Element};
 use log::info;
 
@@ -52,7 +51,7 @@ pub enum Action {
 impl MenuAction for Action {
     type Message = Message;
 
-    fn message(&self, _entity: Option<Entity>) -> Message {
+    fn message(&self) -> Message {
         match self {
             Action::About => Message::ToggleAboutPage,
         }
