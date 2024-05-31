@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use cosmic::{
-    iced::{gradient::ColorStop, Alignment, Color},
+    iced::{gradient::ColorStop, Alignment, Color, Length},
     widget,
 };
 
-use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
+use crate::{
+    colorspace::ColorSpaceMessage as Message, fl, shaders::oklch as shader, widgets::color_slider,
+};
 
 const COLOR_STOPS_LIGHTNESS: [ColorStop; 2] = [
     ColorStop {
@@ -112,6 +114,14 @@ impl Oklch {
                     .align_items(Alignment::Center)
                     .spacing(10.0),
             )
+            .push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<0> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
+            )
             .push(color_slider(
                 0f32..=1.0f32,
                 values[0],
@@ -131,8 +141,16 @@ impl Oklch {
                     .align_items(Alignment::Center)
                     .spacing(10.0),
             )
+            .push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<1> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
+            )
             .push(color_slider(
-                0f32..=0.5f32,
+                0f32..=0.37f32,
                 values[1],
                 |value| Message::ChangeValue { index: 1, value },
                 &COLOR_STOPS_CHROMA,
@@ -149,6 +167,14 @@ impl Oklch {
                     )
                     .align_items(Alignment::Center)
                     .spacing(10.0),
+            )
+            .push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<2> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
             )
             .push(color_slider(
                 0f32..=360f32,

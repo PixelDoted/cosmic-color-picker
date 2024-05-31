@@ -4,6 +4,7 @@ use app::ColorPicker;
 mod app;
 mod colorspace;
 mod core;
+mod shaders;
 mod widgets;
 
 fn main() -> cosmic::iced::Result {

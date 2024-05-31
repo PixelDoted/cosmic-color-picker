@@ -222,14 +222,11 @@ impl Application for ColorPicker {
             contents = contents.push(widget::container(
                 widget::column::with_capacity(2)
                     .push(sidebar)
-                    .push(
-                        content
-                            .map(move |message| Message::ColorSpace { index, message })
-                            .apply(widget::scrollable),
-                    )
+                    .push(content.map(move |message| Message::ColorSpace { index, message }))
                     .spacing(10.0)
                     .padding(10.0)
-                    .width(300.0),
+                    .width(300.0)
+                    .apply(widget::scrollable),
             ));
         }
 

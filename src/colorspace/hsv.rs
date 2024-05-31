@@ -5,7 +5,9 @@ use cosmic::{
     widget,
 };
 
-use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
+use crate::{
+    colorspace::ColorSpaceMessage as Message, fl, shaders::hsv as shader, widgets::color_slider,
+};
 
 const COLOR_STOPS_HUE: [ColorStop; 7] = [
     ColorStop {
@@ -163,6 +165,21 @@ impl Hsv {
             .push(widget::container(red).style(cosmic::style::Container::Card))
             .push(widget::container(green).style(cosmic::style::Container::Card))
             .push(widget::container(blue).style(cosmic::style::Container::Card))
+            .push(
+                widget::container(
+                    widget::container(
+                        cosmic::iced_widget::shader(shader::ColorGraph {
+                            hue: self.values[0],
+                            saturation: self.values[1],
+                            value: self.values[2],
+                        })
+                        .width(100)
+                        .height(100),
+                    )
+                    .padding(10.0),
+                )
+                .style(cosmic::style::Container::Card),
+            )
             .spacing(10.0);
 
         content.into()
@@ -234,6 +251,7 @@ fn rgb_to_hsv(r: f32, g: f32, b: f32) -> [f32; 3] {
     [h, s, x_max]
 }
 
+// ---- Tests ----
 #[cfg(test)]
 mod test {
     use super::{hsv_to_rgb, rgb_to_hsv};
