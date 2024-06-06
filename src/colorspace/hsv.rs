@@ -99,7 +99,7 @@ impl Hsv {
         self.strings[index] = string;
     }
 
-    pub fn view<'a>(&self) -> cosmic::Element<'a, Message> {
+    pub fn view<'a>(&self, show_graphs: bool) -> cosmic::Element<'a, Message> {
         let values = &self.values;
         let strings = &self.strings;
 
@@ -161,11 +161,14 @@ impl Hsv {
             .spacing(10.0)
             .padding(10.0);
 
-        let content = widget::column::with_capacity(3)
+        let mut content = widget::column::with_capacity(3)
             .push(widget::container(red).style(cosmic::style::Container::Card))
             .push(widget::container(green).style(cosmic::style::Container::Card))
             .push(widget::container(blue).style(cosmic::style::Container::Card))
-            .push(
+            .spacing(10.0);
+
+        if show_graphs {
+            content = content.push(
                 widget::container(
                     widget::container(
                         cosmic::iced_widget::shader(shader::ColorGraph {
@@ -179,8 +182,8 @@ impl Hsv {
                     .padding(10.0),
                 )
                 .style(cosmic::style::Container::Card),
-            )
-            .spacing(10.0);
+            );
+        }
 
         content.into()
     }

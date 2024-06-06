@@ -18,6 +18,7 @@ use log::info;
 pub struct ColorPicker {
     pub spaces: Vec<ColorSpace>,
     last_edited: usize,
+    show_graphs: bool,
 
     colorspace_combo: widget::combo_box::State<ColorSpaceCombo>,
     core: Core,
@@ -94,6 +95,7 @@ impl Application for ColorPicker {
         let mut app = ColorPicker {
             spaces: vec![ColorSpace::default()],
             last_edited: 0,
+            show_graphs: true,
 
             colorspace_combo: widget::combo_box::State::new(vec![
                 ColorSpaceCombo::Rgb,
@@ -163,11 +165,31 @@ impl Application for ColorPicker {
 
         for (colorspace, index) in self.spaces.iter().zip(0..) {
             let (rgb, content, combo_selection) = match colorspace {
-                ColorSpace::Rgb(rgb) => (rgb.to_rgb(), rgb.view(), ColorSpaceCombo::Rgb),
-                ColorSpace::Hsv(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::Hsv),
-                ColorSpace::Oklab(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::Oklab),
-                ColorSpace::Oklch(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::Oklch),
-                ColorSpace::Cmyk(cmyk) => (cmyk.to_rgb(), cmyk.view(), ColorSpaceCombo::Cmyk),
+                ColorSpace::Rgb(rgb) => (
+                    rgb.to_rgb(),
+                    rgb.view(self.show_graphs),
+                    ColorSpaceCombo::Rgb,
+                ),
+                ColorSpace::Hsv(hsv) => (
+                    hsv.to_rgb(),
+                    hsv.view(self.show_graphs),
+                    ColorSpaceCombo::Hsv,
+                ),
+                ColorSpace::Oklab(oklab) => (
+                    oklab.to_rgb(),
+                    oklab.view(self.show_graphs),
+                    ColorSpaceCombo::Oklab,
+                ),
+                ColorSpace::Oklch(oklch) => (
+                    oklch.to_rgb(),
+                    oklch.view(self.show_graphs),
+                    ColorSpaceCombo::Oklch,
+                ),
+                ColorSpace::Cmyk(cmyk) => (
+                    cmyk.to_rgb(),
+                    cmyk.view(self.show_graphs),
+                    ColorSpaceCombo::Cmyk,
+                ),
             };
 
             let min_rgb = rgb[0].min(rgb[1]).min(rgb[2]).min(0.0);

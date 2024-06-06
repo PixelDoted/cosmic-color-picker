@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use cosmic::{
-    iced::{gradient::ColorStop, Alignment, Color},
+    iced::{gradient::ColorStop, Alignment, Color, Length},
     widget,
 };
 
-use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
+use crate::{
+    colorspace::ColorSpaceMessage as Message, fl, shaders::oklab as shader, widgets::color_slider,
+};
 
 const COLOR_STOPS_LIGHTNESS: [ColorStop; 2] = [
     ColorStop {
@@ -77,11 +79,11 @@ impl Oklab {
         self.strings[index] = string;
     }
 
-    pub fn view<'a>(&self) -> cosmic::Element<'a, Message> {
+    pub fn view<'a>(&self, show_graphs: bool) -> cosmic::Element<'a, Message> {
         let values = &self.values;
         let strings = &self.strings;
 
-        let lightness = widget::column::with_capacity(3)
+        let mut lightness = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("lightness")).size(20.0))
@@ -100,7 +102,7 @@ impl Oklab {
             ))
             .spacing(10.0)
             .padding(10.0);
-        let green_red = widget::column::with_capacity(3)
+        let mut green_red = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("green-red")).size(20.0))
@@ -119,7 +121,7 @@ impl Oklab {
             ))
             .spacing(10.0)
             .padding(10.0);
-        let blue_yellow = widget::column::with_capacity(3)
+        let mut blue_yellow = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("blue-yellow")).size(20.0))
@@ -138,6 +140,33 @@ impl Oklab {
             ))
             .spacing(10.0)
             .padding(10.0);
+
+        if show_graphs {
+            lightness = lightness.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<0> {
+                    lightness: self.values[0],
+                    green_red: self.values[1],
+                    blue_yellow: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+            green_red = green_red.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<1> {
+                    lightness: self.values[0],
+                    green_red: self.values[1],
+                    blue_yellow: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+            blue_yellow = blue_yellow.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<2> {
+                    lightness: self.values[0],
+                    green_red: self.values[1],
+                    blue_yellow: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+        }
 
         let content = widget::column::with_capacity(3)
             .push(widget::container(lightness).style(cosmic::style::Container::Card))

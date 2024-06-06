@@ -1,4 +1,5 @@
 pub mod hsv;
+pub mod oklab;
 pub mod oklch;
 
 use std::marker::PhantomData;
