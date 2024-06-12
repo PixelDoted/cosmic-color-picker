@@ -25,8 +25,8 @@ fn fs_main(
             rgb = oklch_to_rgb(lightness, chroma, oklch.hue);
         }
         case MODE_CHROMA: {
-            let chroma = uv.y * 0.37;
-            let hue = uv.x * 360.0;
+            let chroma = uv.x * 0.37;
+            let hue = uv.y * 360.0;
 
             rgb = oklch_to_rgb(oklch.lightness, chroma, hue);
         }

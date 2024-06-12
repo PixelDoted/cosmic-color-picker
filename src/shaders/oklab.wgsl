@@ -19,17 +19,15 @@ fn fs_main(
     var rgb = vec3<f32>(0.0);
     switch oklab.mode {
         case MODE_LIGHTNESS: {
-            let green_red = uv.y - 0.5;
             let lightness = uv.x;
 
-            rgb = oklab_to_rgb(lightness, green_red, oklab.blue_yellow);
-            
+            rgb = oklab_to_rgb(lightness, oklab.green_red, oklab.blue_yellow);
         }
         case MODE_GREEN_RED: {
-            let green_red = uv.y - 0.5;
-            let blue_yellow = uv.x - 0.5;
+            let lightness = uv.y;
+            let green_red = uv.x - 0.5;
 
-            rgb = oklab_to_rgb(oklab.lightness, green_red, blue_yellow);
+            rgb = oklab_to_rgb(lightness, green_red, oklab.blue_yellow);
         }
         case MODE_BLUE_YELLOW: {
             let lightness = uv.y;

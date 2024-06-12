@@ -14,7 +14,6 @@ rust-embed = "8.3.0"
 
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
-rev = "2fc4184"
 default-features = false
 features = ["dbus-config", "tokio", "winit", "wgpu"]
 
