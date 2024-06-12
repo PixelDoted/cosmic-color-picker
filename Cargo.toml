@@ -5,6 +5,7 @@ edition = "2021"
 license = "GPL-3.0"
 
 [dependencies]
+bytemuck = { version = "1.16.0", features = ["derive"] }
 i18n-embed-fl = "0.8"
 log = "0.4.21"
 once_cell = "1.19.0"
@@ -13,7 +14,6 @@ rust-embed = "8.3.0"
 
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
-rev = "2fc4184"
 default-features = false
 features = ["dbus-config", "tokio", "winit", "wgpu"]
 

@@ -84,7 +84,7 @@ impl Rgb {
         self.strings[index] = string;
     }
 
-    pub fn view<'a>(&self) -> cosmic::Element<'a, Message> {
+    pub fn view<'a>(&self, _show_graphs: bool) -> cosmic::Element<'a, Message> {
         let values = &self.values;
         let strings = &self.strings;
 

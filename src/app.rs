@@ -18,8 +18,10 @@ use log::info;
 pub struct ColorPicker {
     pub spaces: Vec<ColorSpace>,
     last_edited: usize,
+    show_graphs: bool,
 
     colorspace_combo: widget::combo_box::State<ColorSpaceCombo>,
+    keybinds: HashMap<menu::KeyBind, Action>,
     core: Core,
 }
 
@@ -36,6 +38,7 @@ pub enum Message {
     AddSpace,
     RemoveSpace(usize),
 
+    ToggleGraphs,
     ToggleAboutPage,
     LaunchUrl(String),
 
@@ -45,6 +48,7 @@ pub enum Message {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Action {
+    ToggleGraphs,
     About,
 }
 
@@ -53,6 +57,7 @@ impl MenuAction for Action {
 
     fn message(&self) -> Message {
         match self {
+            Action::ToggleGraphs => Message::ToggleGraphs,
             Action::About => Message::ToggleAboutPage,
         }
     }
@@ -79,8 +84,11 @@ impl Application for ColorPicker {
         vec![MenuBar::new(vec![menu::Tree::with_children(
             menu::root(fl!("view")),
             menu::items(
-                &HashMap::new(),
-                vec![menu::Item::Button(fl!("menu-about"), Action::About)],
+                &self.keybinds,
+                vec![
+                    menu::Item::CheckBox(fl!("graphs"), self.show_graphs, Action::ToggleGraphs),
+                    menu::Item::Button(fl!("menu-about"), Action::About),
+                ],
             ),
         )])
         .into()]
@@ -91,9 +99,19 @@ impl Application for ColorPicker {
     }
 
     fn init(core: Core, _flags: Self::Flags) -> (Self, Command<Self::Message>) {
+        let mut keybinds = HashMap::new();
+        keybinds.insert(
+            menu::KeyBind {
+                modifiers: vec![menu::key_bind::Modifier::Ctrl],
+                key: Key::Character("g".into()),
+            },
+            Action::ToggleGraphs,
+        );
+
         let mut app = ColorPicker {
             spaces: vec![ColorSpace::default()],
             last_edited: 0,
+            show_graphs: false,
 
             colorspace_combo: widget::combo_box::State::new(vec![
                 ColorSpaceCombo::Rgb,
@@ -102,6 +120,7 @@ impl Application for ColorPicker {
                 ColorSpaceCombo::Oklch,
                 ColorSpaceCombo::Cmyk,
             ]),
+            keybinds,
             core,
         };
 
@@ -135,6 +154,9 @@ impl Application for ColorPicker {
                 self.spaces.remove(index);
             }
 
+            Message::ToggleGraphs => {
+                self.show_graphs = !self.show_graphs;
+            }
             Message::ToggleAboutPage => {
                 self.core.window.show_context = !self.core.window.show_context;
             }
@@ -149,6 +171,12 @@ impl Application for ColorPicker {
                 return self.copy_to_clipboard(index);
             }
             Message::Key(key, modifiers) => {
+                for (key_bind, action) in self.keybinds.iter() {
+                    if key_bind.matches(modifiers, &key) {
+                        return self.update(action.message());
+                    }
+                }
+
                 if modifiers.control() && key == Key::Character("c".into()) {
                     return self.copy_to_clipboard(self.last_edited);
                 }
@@ -163,11 +191,31 @@ impl Application for ColorPicker {
 
         for (colorspace, index) in self.spaces.iter().zip(0..) {
             let (rgb, content, combo_selection) = match colorspace {
-                ColorSpace::Rgb(rgb) => (rgb.to_rgb(), rgb.view(), ColorSpaceCombo::Rgb),
-                ColorSpace::Hsv(hsv) => (hsv.to_rgb(), hsv.view(), ColorSpaceCombo::Hsv),
-                ColorSpace::Oklab(oklab) => (oklab.to_rgb(), oklab.view(), ColorSpaceCombo::Oklab),
-                ColorSpace::Oklch(oklch) => (oklch.to_rgb(), oklch.view(), ColorSpaceCombo::Oklch),
-                ColorSpace::Cmyk(cmyk) => (cmyk.to_rgb(), cmyk.view(), ColorSpaceCombo::Cmyk),
+                ColorSpace::Rgb(rgb) => (
+                    rgb.to_rgb(),
+                    rgb.view(self.show_graphs),
+                    ColorSpaceCombo::Rgb,
+                ),
+                ColorSpace::Hsv(hsv) => (
+                    hsv.to_rgb(),
+                    hsv.view(self.show_graphs),
+                    ColorSpaceCombo::Hsv,
+                ),
+                ColorSpace::Oklab(oklab) => (
+                    oklab.to_rgb(),
+                    oklab.view(self.show_graphs),
+                    ColorSpaceCombo::Oklab,
+                ),
+                ColorSpace::Oklch(oklch) => (
+                    oklch.to_rgb(),
+                    oklch.view(self.show_graphs),
+                    ColorSpaceCombo::Oklch,
+                ),
+                ColorSpace::Cmyk(cmyk) => (
+                    cmyk.to_rgb(),
+                    cmyk.view(self.show_graphs),
+                    ColorSpaceCombo::Cmyk,
+                ),
             };
 
             let min_rgb = rgb[0].min(rgb[1]).min(rgb[2]).min(0.0);
@@ -222,14 +270,11 @@ impl Application for ColorPicker {
             contents = contents.push(widget::container(
                 widget::column::with_capacity(2)
                     .push(sidebar)
-                    .push(
-                        content
-                            .map(move |message| Message::ColorSpace { index, message })
-                            .apply(widget::scrollable),
-                    )
+                    .push(content.map(move |message| Message::ColorSpace { index, message }))
                     .spacing(10.0)
                     .padding(10.0)
-                    .width(300.0),
+                    .width(300.0)
+                    .apply(widget::scrollable),
             ));
         }
 

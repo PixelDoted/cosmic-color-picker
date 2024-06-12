@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use cosmic::{
-    iced::{gradient::ColorStop, Alignment, Color},
+    iced::{gradient::ColorStop, Alignment, Color, Length},
     widget,
 };
 
-use crate::{colorspace::ColorSpaceMessage as Message, fl, widgets::color_slider};
+use crate::{
+    colorspace::ColorSpaceMessage as Message, fl, shaders::oklch as shader, widgets::color_slider,
+};
 
 const COLOR_STOPS_LIGHTNESS: [ColorStop; 2] = [
     ColorStop {
@@ -97,11 +99,11 @@ impl Oklch {
         self.strings[index] = string;
     }
 
-    pub fn view<'a>(&self) -> cosmic::Element<'a, Message> {
+    pub fn view<'a>(&self, show_graphs: bool) -> cosmic::Element<'a, Message> {
         let values = &self.values;
         let strings = &self.strings;
 
-        let lightness = widget::column::with_capacity(3)
+        let mut lightness = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("lightness")).size(20.0))
@@ -120,7 +122,7 @@ impl Oklch {
             ))
             .spacing(10.0)
             .padding(10.0);
-        let chroma = widget::column::with_capacity(3)
+        let mut chroma = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("chroma")).size(20.0))
@@ -132,14 +134,14 @@ impl Oklch {
                     .spacing(10.0),
             )
             .push(color_slider(
-                0f32..=0.5f32,
+                0f32..=0.37f32,
                 values[1],
                 |value| Message::ChangeValue { index: 1, value },
                 &COLOR_STOPS_CHROMA,
             ))
             .spacing(10.0)
             .padding(10.0);
-        let hue = widget::column::with_capacity(3)
+        let mut hue = widget::column::with_capacity(3)
             .push(
                 widget::row::with_capacity(2)
                     .push(widget::text(fl!("hue")).size(20.0))
@@ -158,6 +160,33 @@ impl Oklch {
             ))
             .spacing(10.0)
             .padding(10.0);
+
+        if show_graphs {
+            lightness = lightness.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<0> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+            chroma = chroma.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<1> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+            hue = hue.push(
+                cosmic::iced_widget::shader(shader::ColorGraph::<2> {
+                    lightness: self.values[0],
+                    chroma: self.values[1],
+                    hue: self.values[2],
+                })
+                .width(Length::Fill),
+            );
+        }
 
         let content = widget::column::with_capacity(3)
             .push(widget::container(lightness).style(cosmic::style::Container::Card))
