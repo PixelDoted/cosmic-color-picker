@@ -27,6 +27,7 @@ pub struct ColorPicker {
 
 #[derive(Debug, Clone)]
 pub enum Message {
+    None,
     ColorSpace {
         index: usize,
         message: ColorSpaceMessage,
@@ -43,6 +44,8 @@ pub enum Message {
     LaunchUrl(String),
 
     CopyToClipboard(usize),
+    PickScreenRequest(usize),
+    PickScreenResponse((usize, ashpd::desktop::Color)),
     Key(Key, Modifiers),
 }
 
@@ -130,6 +133,7 @@ impl Application for ColorPicker {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
+            Message::None => (),
             Message::ColorSpace { index: i, message } => match message {
                 ColorSpaceMessage::ChangeValue { index, value } => {
                     self.spaces[i].change_value(index, value);
@@ -169,6 +173,29 @@ impl Application for ColorPicker {
 
             Message::CopyToClipboard(index) => {
                 return self.copy_to_clipboard(index);
+            }
+            Message::PickScreenRequest(index) => {
+                return cosmic::command::future(async move {
+                    let req = ashpd::desktop::Color::pick().send().await;
+                    let Ok(req) = req else {
+                        println!("{req:?}");
+                        return Message::None;
+                    };
+
+                    let res = req.response();
+                    let Ok(color) = res else {
+                        println!("{res:?}");
+                        return Message::None;
+                    };
+
+                    println!("{index} {color:?}");
+
+                    Message::PickScreenResponse((index, color))
+                });
+            }
+            Message::PickScreenResponse((index, color)) => {
+                let (r, g, b) = (color.red(), color.green(), color.blue());
+                self.spaces[index].from_rgb([r as f32, g as f32, b as f32])
             }
             Message::Key(key, modifiers) => {
                 for (key_bind, action) in self.keybinds.iter() {
@@ -245,7 +272,13 @@ impl Application for ColorPicker {
                         widget::row::with_capacity(3)
                             .push(
                                 widget::button::icon(widget::icon::from_name("edit-copy-symbolic"))
-                                    .on_press(Message::CopyToClipboard(index)),
+                                    .on_press(Message::CopyToClipboard(index))
+                                    .tooltip("Copy to Clipboard"),
+                            )
+                            .push(
+                                widget::button::icon(widget::icon::from_name("edit-find-symbolic"))
+                                    .on_press(Message::PickScreenRequest(index))
+                                    .tooltip("Pick a color from the screen"),
                             )
                             .push(widget::Space::with_width(Length::Fill))
                             .push(
@@ -253,7 +286,8 @@ impl Application for ColorPicker {
                                     "user-trash-full-symbolic",
                                 ))
                                 .on_press(Message::RemoveSpace(index))
-                                .style(theme::Button::Destructive),
+                                .style(theme::Button::Destructive)
+                                .tooltip("Delete"),
                             ),
                     )
                     .push(widget::combo_box(

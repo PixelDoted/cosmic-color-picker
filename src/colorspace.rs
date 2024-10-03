@@ -106,6 +106,16 @@ impl ColorSpace {
         Self::Cmyk(Cmyk::from_rgb(rgb))
     }
 
+    pub fn from_rgb(&mut self, rgb_in: [f32; 3]) {
+        match self {
+            ColorSpace::Rgb(rgb) => *rgb = rgb::Rgb::from_rgb(rgb_in),
+            ColorSpace::Hsv(hsv) => *hsv = hsv::Hsv::from_rgb(rgb_in),
+            ColorSpace::Oklab(oklab) => *oklab = oklab::Oklab::from_rgb(rgb_in),
+            ColorSpace::Oklch(oklch) => *oklch = oklch::Oklch::from_rgb(rgb_in),
+            ColorSpace::Cmyk(cmyk) => *cmyk = cmyk::Cmyk::from_rgb(rgb_in),
+        }
+    }
+
     pub fn get_rgb(&self) -> [f32; 3] {
         match self {
             ColorSpace::Rgb(rgb) => rgb.to_rgb(),
