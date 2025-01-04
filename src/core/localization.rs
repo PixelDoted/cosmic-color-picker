@@ -2,7 +2,7 @@
 
 use i18n_embed::{
     fluent::{fluent_language_loader, FluentLanguageLoader},
-    LanguageLoader,
+    DesktopLanguageRequester, LanguageLoader,
 };
 use once_cell::sync::Lazy;
 use rust_embed::RustEmbed;
@@ -14,11 +14,10 @@ struct Localizations;
 pub static LANGUAGE_LOADER: Lazy<FluentLanguageLoader> = Lazy::new(|| {
     let loader: FluentLanguageLoader = fluent_language_loader!();
 
-    loader
-        .load_fallback_language(&Localizations)
-        .expect("Error while loading fallback language");
-
-    loader
+    let requested_languages = DesktopLanguageRequester::requested_languages();
+    let locales = i18n_embed::select(&loader, &Localizations, &requested_languages);
+    let locale = locales.unwrap_or_else(|_| vec![loader.fallback_language().clone()]);
+    loader.select_languages(&locale)
 });
 
 #[macro_export]
