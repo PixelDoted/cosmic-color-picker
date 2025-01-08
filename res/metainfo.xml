@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>me.pixeldoted.CosmicColorPicker</id>
+  <id>io.github.pixeldoted.cosmic-color-picker</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
-  <developer id="me.pixeldoted">
+  <developer id="io.github.pixeldoted">
     <name>PixelDoted</name>
   </developer>
   <update_contact></update_contact>
@@ -15,8 +15,8 @@
   <description>
     <p>A color picker for the COSMIC desktop</p>
   </description>
-  <launchable type="desktop-id">me.pixeldoted.CosmicColorPicker.desktop</launchable>
-  <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/pixeldoted/cosmic-color-picker/master/res/icons/hicolor/256x256/apps/me.pixeldoted.CosmicColorPicker.svg</icon>
+  <launchable type="desktop-id">io.github.pixeldoted.cosmic-color-picker.desktop</launchable>
+  <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/pixeldoted/cosmic-color-picker/master/res/icons/hicolor/256x256/apps/io.github.pixeldoted.cosmic-color-picker.svg</icon>
   <releases>
       <release version="1.0.0" date="2025-01-08">
           <description>

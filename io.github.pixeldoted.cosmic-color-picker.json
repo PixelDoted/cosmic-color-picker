@@ -1,5 +1,5 @@
 {
-  "app-id": "me.pixeldoted.pixeldoted.CosmicColorPicker",
+  "app-id": "io.github.pixeldoted.cosmic-color-picker",
   "runtime": "org.freedesktop.Platform",
   "runtime-version": "24.08",
   "sdk": "org.freedesktop.Sdk",
@@ -31,9 +31,9 @@
         "cargo --offline fetch --manifest-path Cargo.toml --verbose",
         "cargo --offline build --release --verbose",
         "install -Dm755 ./target/release/cosmic-color-picker -t /app/bin/",
-        "install -Dm644 ./res/app_icon.svg /app/share/icons/hicolor/scalable/apps/me.pixeldoted.CosmicColorPicker.svg",
-        "install -Dm644 ./res/me.pixeldoted.CosmicColorPicker.metainfo.xml /app/share/metainfo/me.pixeldoted.CosmicColorPicker.metainfo.xml",
-        "install -Dm644 ./res/me.pixeldoted.CosmicColorPicker.desktop /app/share/applications/me.pixeldoted.CosmicColorPicker.desktop"
+        "install -Dm644 ./res/app_icon.svg /app/share/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-color-picker.svg",
+        "install -Dm644 ./res/metainfo.xml /app/share/metainfo/io.github.pixeldoted.cosmic-color-picker.metainfo.xml",
+        "install -Dm644 ./res/app.desktop /app/share/applications/io.github.pixeldoted.cosmic-color-picker.desktop"
       ],
       "sources": [
         {
