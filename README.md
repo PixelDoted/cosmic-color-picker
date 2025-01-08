@@ -1,8 +1,8 @@
 <img src="./icon.svg" alt="Icon" width="200px"/>
 
-# COSMIC Color Picker
+# COSMIC™ Color Picker
 
-A Color Picker for COSMIC  
+A Color Picker for the COSMIC™ desktop  
 ![Preview Image With RGB, HSV, OKLAB and OKLCH spaces](./preview.png)
 
 ## Supported Color spaces
@@ -11,4 +11,6 @@ A Color Picker for COSMIC
 - HSV
 - OKLAB
 - OKLCH
-- CMYK ([<!> Doesn't use an ICC Profile](https://en.wikipedia.org/wiki/CMYK_color_model#Conversion))
+- CMYK
+
+([<!> Doesn't use an ICC Profiles](https://en.wikipedia.org/wiki/CMYK_color_model#Conversion))
