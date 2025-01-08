@@ -393,7 +393,7 @@ impl ColorPicker {
         let content = widget::column::with_capacity(4)
             .push(widget::svg(widget::svg::Handle::from_memory(
                 &include_bytes!(
-                    "../res/icons/hicolor/128x128/apps/io.github.pixeldoted.cosmic-color-picker.svg"
+                    "../res/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-color-picker.svg"
                 )[..],
             )))
             .push(widget::text::title3(fl!("app-title")))

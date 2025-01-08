@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=COSMIC Color Picker
-Exec=cosmic-color-picker %F
+Exec=cosmic-ext-color-picker %F
 Terminal=false
 Type=Application
 StartupNotify=true
