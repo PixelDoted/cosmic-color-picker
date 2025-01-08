@@ -3,7 +3,7 @@
 # COSMIC™ Color Picker
 
 A Color Picker for the COSMIC™ desktop  
-![Preview Image With RGB, HSV, OKLAB and OKLCH spaces](./preview.png)
+![Preview Image With RGB, HSV, OKLAB and OKLCH spaces](./res/screenshots/theme_dark.png)
 
 ## Supported Color spaces
 
