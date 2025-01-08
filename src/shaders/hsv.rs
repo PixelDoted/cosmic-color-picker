@@ -1,4 +1,8 @@
-use cosmic::iced_widget::shader::{self};
+use cosmic::{
+    iced::{wgpu, Rectangle},
+    iced_wgpu::graphics::Viewport,
+    iced_widget::shader::{self, Storage},
+};
 
 use crate::shaders::ShaderPipeline;
 
@@ -43,13 +47,12 @@ impl Primitive {
 impl shader::Primitive for Primitive {
     fn prepare(
         &self,
-        format: shader::wgpu::TextureFormat,
-        device: &shader::wgpu::Device,
-        queue: &shader::wgpu::Queue,
-        bounds: cosmic::iced::Rectangle,
-        target_size: cosmic::iced::Size<u32>,
-        scale_factor: f32,
-        storage: &mut shader::Storage,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        format: wgpu::TextureFormat,
+        storage: &mut Storage,
+        bounds: &Rectangle,
+        viewport: &Viewport,
     ) {
         if !storage.has::<ShaderPipeline<Uniforms, 0>>() {
             storage.store(ShaderPipeline::<Uniforms, 0>::new(
@@ -66,14 +69,13 @@ impl shader::Primitive for Primitive {
 
     fn render(
         &self,
-        storage: &shader::Storage,
-        target: &shader::wgpu::TextureView,
-        target_size: cosmic::iced::Size<u32>,
-        viewport: cosmic::iced::Rectangle<u32>,
-        encoder: &mut shader::wgpu::CommandEncoder,
+        encoder: &mut wgpu::CommandEncoder,
+        storage: &Storage,
+        target: &wgpu::TextureView,
+        clip_bounds: &Rectangle<u32>,
     ) {
         let pipeline = storage.get::<ShaderPipeline<Uniforms, 0>>().unwrap();
-        pipeline.render(target, encoder, viewport);
+        pipeline.render(target, encoder, clip_bounds);
     }
 }
 

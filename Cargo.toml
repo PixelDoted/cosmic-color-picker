@@ -15,6 +15,7 @@ ashpd = "0.9.1"
 
 [dependencies.libcosmic]
 git = "https://github.com/pop-os/libcosmic.git"
+rev = "e162c59"
 default-features = false
 features = ["dbus-config", "tokio", "winit", "wgpu"]
 

@@ -1,14 +1,18 @@
-use std::{ops::RangeInclusive, rc::Rc};
+use std::{f32::consts::FRAC_PI_2, ops::RangeInclusive, rc::Rc};
 
 use cosmic::{
     iced::{
+        border,
         gradient::{ColorStop, Linear},
-        Border, Color, Length, Radians,
+        mouse, touch, Background, Border, Color, Element, Event, Gradient, Length, Padding, Point,
+        Radians, Rectangle, Shadow, Size,
     },
+    iced_core::{layout, renderer, widget::tree},
     theme,
     widget::{
         self,
         slider::{self, HandleShape, RailBackground},
+        Widget,
     },
 };
 
@@ -54,12 +58,12 @@ impl<'a, Message: 'a> From<ColorBlock> for cosmic::Element<'a, Message> {
             height,
         } = value;
 
-        widget::container(widget::vertical_space(height))
-            .style(theme::Container::custom(move |theme| {
+        widget::container(widget::Space::with_height(height))
+            .class(theme::Container::custom(move |theme| {
                 let cosmic = theme.cosmic();
                 let radius = cosmic.corner_radii.radius_xs;
 
-                cosmic::iced_style::container::Appearance {
+                cosmic::widget::container::Style {
                     background: Some(value.color.into()),
                     border: Border {
                         radius: [
@@ -93,51 +97,196 @@ pub fn color_slider<'a, Message>(
 where
     Message: Clone + 'a,
 {
-    widget::slider(range, value, on_change)
-        .step(0.001)
-        .style(theme::iced::Slider::Custom {
-            active: Rc::new(|t| {
-                let cosmic = t.cosmic();
-                let mut a = slider::StyleSheet::active(t, &theme::iced::Slider::default());
-                a.rail.colors = RailBackground::Gradient {
-                    gradient: Linear::new(Radians(0.0)).add_stops(color_stops.iter().cloned()),
-                    auto_angle: true,
-                };
-                a.rail.width = 8.0;
-                a.handle.color = Color::TRANSPARENT;
-                a.handle.shape = HandleShape::Circle { radius: 8.0 };
-                a.handle.border_color = cosmic.palette.neutral_10.into();
-                a.handle.border_width = 4.0;
-                a
-            }),
-            hovered: Rc::new(|t| {
-                let cosmic = t.cosmic();
-                let mut a = slider::StyleSheet::active(t, &theme::iced::Slider::default());
-                a.rail.colors = RailBackground::Gradient {
-                    gradient: Linear::new(Radians(0.0)).add_stops(color_stops.iter().cloned()),
-                    auto_angle: true,
-                };
-                a.rail.width = 8.0;
-                a.handle.color = Color::TRANSPARENT;
-                a.handle.shape = HandleShape::Circle { radius: 8.0 };
-                a.handle.border_color = cosmic.palette.neutral_10.into();
-                a.handle.border_width = 4.0;
-                a
-            }),
-            dragging: Rc::new(|t| {
-                let cosmic = t.cosmic();
-                let mut a = slider::StyleSheet::active(t, &theme::iced::Slider::default());
-                a.rail.colors = RailBackground::Gradient {
-                    gradient: Linear::new(Radians(0.0)).add_stops(color_stops.iter().cloned()),
-                    auto_angle: true,
-                };
-                a.rail.width = 8.0;
-                a.handle.color = Color::TRANSPARENT;
-                a.handle.shape = HandleShape::Circle { radius: 8.0 };
-                a.handle.border_color = cosmic.palette.neutral_10.into();
-                a.handle.border_width = 4.0;
-                a
-            }),
-        })
-        .into()
+    ColorSlider {
+        value,
+        range,
+        background: Gradient::Linear(Linear::new(FRAC_PI_2).add_stops(color_stops.iter().cloned())),
+        scroll_steps: 0.01,
+        on_change: Box::new(on_change),
+    }
+    .into()
+}
+
+pub struct ColorSlider<'a, Message> {
+    value: f32,
+    range: RangeInclusive<f32>,
+    background: Gradient,
+    scroll_steps: f32,
+    on_change: Box<dyn Fn(f32) -> Message + 'a>,
+}
+
+impl<'a, Message, Theme, Renderer> Widget<Message, Theme, Renderer> for ColorSlider<'a, Message>
+where
+    Renderer: renderer::Renderer,
+{
+    fn state(&self) -> cosmic::iced_core::widget::tree::State {
+        tree::State::new(ColorSliderState { is_dragging: false })
+    }
+
+    fn size(&self) -> cosmic::iced::Size<Length> {
+        Size {
+            width: Length::Fill,
+            height: Length::Fixed(15.0),
+        }
+    }
+
+    fn layout(
+        &self,
+        tree: &mut cosmic::iced_core::widget::Tree,
+        renderer: &Renderer,
+        limits: &cosmic::iced_core::layout::Limits,
+    ) -> cosmic::iced_core::layout::Node {
+        layout::Node::new(Size::new(limits.max().width, 15.0))
+    }
+
+    fn draw(
+        &self,
+        tree: &cosmic::iced_core::widget::Tree,
+        renderer: &mut Renderer,
+        theme: &Theme,
+        style: &renderer::Style,
+        layout: cosmic::iced_core::Layout<'_>,
+        cursor: cosmic::iced_core::mouse::Cursor,
+        viewport: &cosmic::iced::Rectangle,
+    ) {
+        let bounds = layout.bounds();
+        let rail_bounds = bounds.shrink(Padding::new(0.0).top(3.0).bottom(3.0));
+
+        let percent = (self.value - self.range.start()) / (self.range.end() - self.range.start());
+        let handle_bounds = Rectangle {
+            x: bounds.x + (bounds.width - bounds.height) * percent,
+            y: bounds.y,
+            width: bounds.height,
+            height: bounds.height,
+        };
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: rail_bounds,
+                border: border::rounded(10),
+                shadow: Shadow {
+                    ..Default::default()
+                },
+            },
+            self.background,
+        );
+
+        renderer.fill_quad(
+            renderer::Quad {
+                bounds: handle_bounds,
+                border: Border {
+                    color: Color::WHITE,
+                    width: 3.0,
+                    radius: 10f32.into(),
+                },
+                shadow: Shadow::default(),
+            },
+            Background::Color(Color::TRANSPARENT),
+        );
+    }
+
+    fn on_event(
+        &mut self,
+        tree: &mut cosmic::iced_core::widget::Tree,
+        event: cosmic::iced::Event,
+        layout: layout::Layout<'_>,
+        cursor: cosmic::iced_core::mouse::Cursor,
+        _renderer: &Renderer,
+        _clipboard: &mut dyn cosmic::iced_core::Clipboard,
+        shell: &mut cosmic::iced_core::Shell<'_, Message>,
+        _viewport: &Rectangle,
+    ) -> cosmic::iced_core::event::Status {
+        let state = tree.state.downcast_mut::<ColorSliderState>();
+
+        let mut change = |position: &Point| {
+            let bounds = layout.bounds();
+            let relative_x = (position.x - bounds.x) / (bounds.width - bounds.height);
+            let percent = relative_x.clamp(0.0, 1.0);
+
+            self.value = self.range.start() * (1.0 - percent) + self.range.end() * percent;
+            shell.publish((self.on_change)(self.value));
+        };
+
+        match &event {
+            Event::Mouse(mouse::Event::ButtonPressed(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerPressed { .. }) => {
+                if let Some(position) = cursor.position_over(layout.bounds()) {
+                    state.is_dragging = true;
+                    change(&position);
+                    return cosmic::iced_core::event::Status::Captured;
+                }
+            }
+            Event::Mouse(mouse::Event::ButtonReleased(mouse::Button::Left))
+            | Event::Touch(touch::Event::FingerLifted { .. })
+            | Event::Touch(touch::Event::FingerLost { .. }) => {
+                if state.is_dragging {
+                    state.is_dragging = false;
+                    return cosmic::iced_core::event::Status::Captured;
+                }
+            }
+            Event::Mouse(mouse::Event::CursorMoved { .. })
+            | Event::Touch(touch::Event::FingerMoved { .. }) => {
+                if state.is_dragging {
+                    change(cursor.position().as_ref().unwrap());
+                    return cosmic::iced_core::event::Status::Captured;
+                }
+            }
+
+            Event::Mouse(mouse::Event::WheelScrolled { delta }) => {
+                if !state.is_dragging && cursor.is_over(layout.bounds()) {
+                    match delta {
+                        mouse::ScrollDelta::Lines { x, y } => {
+                            self.value += *y * self.scroll_steps;
+                            self.value = self.value.clamp(*self.range.start(), *self.range.end());
+                            shell.publish((self.on_change)(self.value));
+                        }
+                        mouse::ScrollDelta::Pixels { x, y } => {
+                            self.value += *y * self.scroll_steps;
+                            self.value = self.value.clamp(*self.range.start(), *self.range.end());
+                            shell.publish((self.on_change)(self.value));
+                        }
+                    }
+                    return cosmic::iced_core::event::Status::Captured;
+                }
+            }
+            _ => (),
+        }
+
+        cosmic::iced_core::event::Status::Ignored
+    }
+
+    fn mouse_interaction(
+        &self,
+        tree: &tree::Tree,
+        layout: layout::Layout<'_>,
+        cursor: cosmic::iced_core::mouse::Cursor,
+        _viewport: &Rectangle,
+        _renderer: &Renderer,
+    ) -> cosmic::iced_core::mouse::Interaction {
+        let state = tree.state.downcast_ref::<ColorSliderState>();
+
+        if state.is_dragging {
+            mouse::Interaction::Grabbing
+        } else if cursor.is_over(layout.bounds()) {
+            mouse::Interaction::Grab
+        } else {
+            mouse::Interaction::default()
+        }
+    }
+}
+
+impl<'a, Message, Theme, Renderer> From<ColorSlider<'a, Message>>
+    for Element<'a, Message, Theme, Renderer>
+where
+    Renderer: renderer::Renderer,
+    Message: Clone + 'a,
+{
+    fn from(value: ColorSlider<'a, Message>) -> Self {
+        Self::new(value)
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ColorSliderState {
+    is_dragging: bool,
 }

@@ -5,12 +5,13 @@ use std::collections::HashMap;
 use crate::colorspace::{ColorSpace, ColorSpaceCombo, ColorSpaceMessage};
 use crate::fl;
 use crate::widgets::color_block;
-use cosmic::app::{Command, Core};
+use cosmic::app::context_drawer::ContextDrawer;
+use cosmic::app::{Core, Task};
 use cosmic::iced::alignment::{Horizontal, Vertical};
 use cosmic::iced::keyboard::{Key, Modifiers};
 use cosmic::iced::{clipboard, Length};
 use cosmic::iced::{event, keyboard::Event as KeyEvent, Color, Event, Subscription};
-use cosmic::iced_widget::scrollable::{Direction, Properties};
+use cosmic::iced_widget::scrollable::{Direction, Scrollbar};
 use cosmic::widget::menu::{self, action::MenuAction, MenuBar};
 use cosmic::{theme, widget, Application, ApplicationExt, Apply, Element};
 use log::info;
@@ -20,7 +21,8 @@ pub struct ColorPicker {
     last_edited: usize,
     show_graphs: bool,
 
-    colorspace_combo: widget::combo_box::State<ColorSpaceCombo>,
+    colorspace_selections: Vec<ColorSpaceCombo>,
+    colorspace_names: Vec<String>,
     keybinds: HashMap<menu::KeyBind, Action>,
     core: Core,
 }
@@ -89,8 +91,13 @@ impl Application for ColorPicker {
             menu::items(
                 &self.keybinds,
                 vec![
-                    menu::Item::CheckBox(fl!("graphs"), self.show_graphs, Action::ToggleGraphs),
-                    menu::Item::Button(fl!("menu-about"), Action::About),
+                    menu::Item::CheckBox(
+                        fl!("graphs"),
+                        None,
+                        self.show_graphs,
+                        Action::ToggleGraphs,
+                    ),
+                    menu::Item::Button(fl!("menu-about"), None, Action::About),
                 ],
             ),
         )])
@@ -101,7 +108,7 @@ impl Application for ColorPicker {
         vec![widget::text::heading(fl!("app-title")).into()]
     }
 
-    fn init(core: Core, _flags: Self::Flags) -> (Self, Command<Self::Message>) {
+    fn init(core: Core, _flags: Self::Flags) -> (Self, Task<Self::Message>) {
         let mut keybinds = HashMap::new();
         keybinds.insert(
             menu::KeyBind {
@@ -116,22 +123,29 @@ impl Application for ColorPicker {
             last_edited: 0,
             show_graphs: false,
 
-            colorspace_combo: widget::combo_box::State::new(vec![
+            colorspace_selections: vec![
                 ColorSpaceCombo::Rgb,
                 ColorSpaceCombo::Hsv,
                 ColorSpaceCombo::Oklab,
                 ColorSpaceCombo::Oklch,
                 ColorSpaceCombo::Cmyk,
-            ]),
+            ],
+            colorspace_names: vec![],
             keybinds,
             core,
         };
+
+        app.colorspace_names = app
+            .colorspace_selections
+            .iter()
+            .map(|cs| cs.to_string())
+            .collect();
 
         let command = app.set_window_title(fl!("app-title"));
         (app, command)
     }
 
-    fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
+    fn update(&mut self, message: Self::Message) -> Task<Self::Message> {
         match message {
             Message::None => (),
             Message::ColorSpace { index: i, message } => match message {
@@ -175,7 +189,7 @@ impl Application for ColorPicker {
                 return self.copy_to_clipboard(index);
             }
             Message::PickScreenRequest(index) => {
-                return cosmic::command::future(async move {
+                return cosmic::task::future(async move {
                     let req = ashpd::desktop::Color::pick().send().await;
                     let Ok(req) = req else {
                         println!("{req:?}");
@@ -210,7 +224,7 @@ impl Application for ColorPicker {
             }
         }
 
-        Command::none()
+        Task::none()
     }
 
     fn view(&self) -> Element<Self::Message> {
@@ -221,27 +235,27 @@ impl Application for ColorPicker {
                 ColorSpace::Rgb(rgb) => (
                     rgb.to_rgb(),
                     rgb.view(self.show_graphs),
-                    ColorSpaceCombo::Rgb,
+                    0, //ColorSpaceCombo::Rgb,
                 ),
                 ColorSpace::Hsv(hsv) => (
                     hsv.to_rgb(),
                     hsv.view(self.show_graphs),
-                    ColorSpaceCombo::Hsv,
+                    1, //ColorSpaceCombo::Hsv,
                 ),
                 ColorSpace::Oklab(oklab) => (
                     oklab.to_rgb(),
                     oklab.view(self.show_graphs),
-                    ColorSpaceCombo::Oklab,
+                    2, //ColorSpaceCombo::Oklab,
                 ),
                 ColorSpace::Oklch(oklch) => (
                     oklch.to_rgb(),
                     oklch.view(self.show_graphs),
-                    ColorSpaceCombo::Oklch,
+                    3, //ColorSpaceCombo::Oklch,
                 ),
                 ColorSpace::Cmyk(cmyk) => (
                     cmyk.to_rgb(),
                     cmyk.view(self.show_graphs),
-                    ColorSpaceCombo::Cmyk,
+                    4, //ColorSpaceCombo::Cmyk,
                 ),
             };
 
@@ -286,19 +300,22 @@ impl Application for ColorPicker {
                                     "user-trash-full-symbolic",
                                 ))
                                 .on_press(Message::RemoveSpace(index))
-                                .style(theme::Button::Destructive)
+                                .class(theme::Button::Destructive)
                                 .tooltip("Delete"),
                             ),
                     )
-                    .push(widget::combo_box(
-                        &self.colorspace_combo,
-                        "",
-                        Some(&combo_selection),
-                        move |t| Message::ChangeColorSpace { index, selected: t },
-                    ))
+                    .push(
+                        widget::dropdown(&self.colorspace_names, Some(combo_selection), move |t| {
+                            Message::ChangeColorSpace {
+                                index,
+                                selected: self.colorspace_selections[t].clone(),
+                            }
+                        })
+                        .width(Length::Fill),
+                    )
                     .spacing(10.0),
             )
-            .style(theme::Container::Card)
+            .class(theme::Container::Card)
             .padding(10.0);
 
             contents = contents.push(widget::container(
@@ -327,12 +344,12 @@ impl Application for ColorPicker {
         }
 
         widget::scrollable(contents)
-            .direction(Direction::Horizontal(Properties::new()))
+            .direction(Direction::Horizontal(Scrollbar::new()))
             .height(Length::Fill)
             .into()
     }
 
-    fn context_drawer(&self) -> Option<Element<Self::Message>> {
+    fn context_drawer(&self) -> Option<ContextDrawer<Self::Message>> {
         if !self.core.window.show_context {
             return None;
         }
@@ -341,18 +358,20 @@ impl Application for ColorPicker {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        Subscription::batch(vec![event::listen_with(|event, status| match event {
-            Event::Keyboard(KeyEvent::KeyPressed { key, modifiers, .. }) => match status {
-                event::Status::Ignored => Some(Message::Key(key, modifiers)),
-                event::Status::Captured => None,
+        Subscription::batch(vec![event::listen_with(
+            |event, status, _windowid| match event {
+                Event::Keyboard(KeyEvent::KeyPressed { key, modifiers, .. }) => match status {
+                    event::Status::Ignored => Some(Message::Key(key, modifiers)),
+                    event::Status::Captured => None,
+                },
+                _ => None,
             },
-            _ => None,
-        })])
+        )])
     }
 }
 
 impl ColorPicker {
-    fn copy_to_clipboard(&self, index: usize) -> Command<Message> {
+    fn copy_to_clipboard(&self, index: usize) -> Task<Message> {
         let contents = match &self.spaces[index] {
             ColorSpace::Rgb(rgb) => rgb.copy_to_clipboard(),
             ColorSpace::Hsv(hsv) => hsv.copy_to_clipboard(),
@@ -365,12 +384,13 @@ impl ColorPicker {
         clipboard::write(contents)
     }
 
-    fn about(&self) -> cosmic::Element<Message> {
+    fn about(&self) -> ContextDrawer<Message> {
         let repository = "https://github.com/PixelDoted/cosmic-color-picker";
         let hash = env!("VERGEN_GIT_SHA");
         let short_hash = &hash[0..7];
         let date = env!("VERGEN_GIT_COMMIT_DATE");
-        widget::column::with_capacity(4)
+
+        let content = widget::column::with_capacity(4)
             .push(widget::svg(widget::svg::Handle::from_memory(
                 &include_bytes!(
                     "../res/icons/hicolor/128x128/apps/me.pixeldoted.CosmicColorPicker.svg"
@@ -390,6 +410,15 @@ impl ColorPicker {
                     )))
                     .padding(0),
             )
-            .into()
+            .into();
+
+        ContextDrawer {
+            title: Some("About".into()),
+            header_actions: vec![],
+            header: None,
+            content,
+            footer: None,
+            on_close: Message::ToggleAboutPage,
+        }
     }
 }

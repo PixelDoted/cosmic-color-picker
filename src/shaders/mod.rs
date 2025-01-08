@@ -4,10 +4,7 @@ pub mod oklch;
 
 use std::marker::PhantomData;
 
-use cosmic::{
-    iced::Rectangle,
-    iced_widget::shader::wgpu::{self},
-};
+use cosmic::iced::{wgpu, Rectangle};
 
 pub struct ShaderPipeline<T, const ID: u32> {
     pipeline: wgpu::RenderPipeline,
@@ -79,6 +76,7 @@ impl<T: bytemuck::Pod, const ID: u32> ShaderPipeline<T, ID> {
                 module: &vertex_shader,
                 entry_point: "vs_main",
                 buffers: &[],
+                compilation_options: Default::default(),
             },
             primitive: wgpu::PrimitiveState::default(),
             depth_stencil: None,
@@ -91,8 +89,10 @@ impl<T: bytemuck::Pod, const ID: u32> ShaderPipeline<T, ID> {
                     blend: Some(wgpu::BlendState::ALPHA_BLENDING),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
+                compilation_options: Default::default(),
             }),
             multiview: None,
+            cache: None,
         });
 
         Self {
@@ -111,7 +111,7 @@ impl<T: bytemuck::Pod, const ID: u32> ShaderPipeline<T, ID> {
         &self,
         target: &wgpu::TextureView,
         encoder: &mut wgpu::CommandEncoder,
-        viewport: Rectangle<u32>,
+        viewport: &Rectangle<u32>,
     ) {
         let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("shader.pipeline.pass"),

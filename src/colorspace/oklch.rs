@@ -111,7 +111,7 @@ impl Oklch {
                         widget::text_input("", strings[0].clone())
                             .on_input(|string| Message::ChangeString { index: 0, string }),
                     )
-                    .align_items(Alignment::Center)
+                    .align_y(Alignment::Center)
                     .spacing(10.0),
             )
             .push(color_slider(
@@ -130,7 +130,7 @@ impl Oklch {
                         widget::text_input("", strings[1].clone())
                             .on_input(|string| Message::ChangeString { index: 1, string }),
                     )
-                    .align_items(Alignment::Center)
+                    .align_y(Alignment::Center)
                     .spacing(10.0),
             )
             .push(color_slider(
@@ -149,7 +149,7 @@ impl Oklch {
                         widget::text_input("", strings[2].clone())
                             .on_input(|string| Message::ChangeString { index: 2, string }),
                     )
-                    .align_items(Alignment::Center)
+                    .align_y(Alignment::Center)
                     .spacing(10.0),
             )
             .push(color_slider(
@@ -189,9 +189,9 @@ impl Oklch {
         }
 
         let content = widget::column::with_capacity(3)
-            .push(widget::container(lightness).style(cosmic::style::Container::Card))
-            .push(widget::container(chroma).style(cosmic::style::Container::Card))
-            .push(widget::container(hue).style(cosmic::style::Container::Card))
+            .push(widget::container(lightness).class(cosmic::style::Container::Card))
+            .push(widget::container(chroma).class(cosmic::style::Container::Card))
+            .push(widget::container(hue).class(cosmic::style::Container::Card))
             .spacing(10.0);
 
         content.into()
