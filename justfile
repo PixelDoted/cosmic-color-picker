@@ -1,4 +1,4 @@
-name := 'cosmic-color-picker'
+name := 'cosmic-ext-color-picker'
 export APPID := 'io.github.pixeldoted.cosmic-color-picker'
 
 rootdir := ''
@@ -62,7 +62,7 @@ dev *args:
 
 # Run with debug logs
 run *args:
-    env RUST_LOG=cosmic-color-picker=info RUST_BACKTRACE=full cargo run --release {{args}}
+    env RUST_LOG=cosmic-ext-color-picker=info RUST_BACKTRACE=full cargo run --release {{args}}
 
 # Installs files
 install:

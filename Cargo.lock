@@ -996,22 +996,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmic-color-picker"
-version = "1.0.0"
-dependencies = [
- "ashpd 0.9.2",
- "bytemuck",
- "i18n-embed",
- "i18n-embed-fl",
- "libcosmic",
- "log",
- "once_cell",
- "open",
- "rust-embed",
- "vergen",
-]
-
-[[package]]
 name = "cosmic-config"
 version = "0.1.0"
 source = "git+https://github.com/pop-os/libcosmic.git?rev=e162c59#e162c59160c8dd95aa3a85ec7ff203353d3ebb43"
@@ -1040,6 +1024,22 @@ source = "git+https://github.com/pop-os/libcosmic.git?rev=e162c59#e162c59160c8dd
 dependencies = [
  "quote",
  "syn 1.0.109",
+]
+
+[[package]]
+name = "cosmic-ext-color-picker"
+version = "1.0.0"
+dependencies = [
+ "ashpd 0.9.2",
+ "bytemuck",
+ "i18n-embed",
+ "i18n-embed-fl",
+ "libcosmic",
+ "log",
+ "once_cell",
+ "open",
+ "rust-embed",
+ "vergen",
 ]
 
 [[package]]
