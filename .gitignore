@@ -12,3 +12,10 @@ Cargo.lock
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# Linux
+flatpak_app/
+.flatpak-builder/
+repo/
+builddir/
+cargo-sources.json
