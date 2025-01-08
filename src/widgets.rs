@@ -227,7 +227,10 @@ where
             Event::Mouse(mouse::Event::CursorMoved { .. })
             | Event::Touch(touch::Event::FingerMoved { .. }) => {
                 if state.is_dragging {
-                    change(cursor.position().as_ref().unwrap());
+                    if let Some(position) = cursor.position().as_ref() {
+                        change(position);
+                    }
+
                     return cosmic::iced_core::event::Status::Captured;
                 }
             }
