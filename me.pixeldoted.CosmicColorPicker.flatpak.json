@@ -1,5 +1,5 @@
 {
-  "app-id": "me.pixeldoted.CosmicColorPicker",
+  "app-id": "me.pixeldoted.pixeldoted.CosmicColorPicker",
   "runtime": "org.freedesktop.Platform",
   "runtime-version": "24.08",
   "sdk": "org.freedesktop.Sdk",
