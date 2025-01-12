@@ -1,10 +1,10 @@
 [Desktop Entry]
-Name=COSMIC Color Picker
+Name=Color Picker for COSMIC
 Exec=cosmic-ext-color-picker %F
 Terminal=false
 Type=Application
 StartupNotify=true
-Icon=io.github.pixeldoted.cosmic-color-picker
+Icon=io.github.pixeldoted.cosmic-ext-color-picker
 Categories=COSMIC;Utility;
 Keywords=Folder;Manager;
 MimeType=inode/directory;

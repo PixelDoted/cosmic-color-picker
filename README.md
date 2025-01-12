@@ -1,6 +1,6 @@
 <img src="./icon.svg" alt="Icon" width="200px"/>
 
-# COSMIC™ Color Picker
+# Color Picker for COSMIC™ 
 
 A Color Picker for the COSMIC™ desktop  
 ![Preview Image With RGB, HSV, OKLAB and OKLCH spaces](./res/screenshots/theme_dark.png)

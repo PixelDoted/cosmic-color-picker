@@ -75,7 +75,7 @@ impl Application for ColorPicker {
 
     type Message = Message;
 
-    const APP_ID: &'static str = "io.github.pixeldoted.cosmic-color-picker";
+    const APP_ID: &'static str = "io.github.pixeldoted.cosmic-ext-color-picker";
 
     fn core(&self) -> &Core {
         &self.core
@@ -385,7 +385,7 @@ impl ColorPicker {
     }
 
     fn about(&self) -> ContextDrawer<Message> {
-        let repository = "https://github.com/PixelDoted/cosmic-color-picker";
+        let repository = "https://github.com/PixelDoted/cosmic-ext-color-picker";
         let hash = env!("VERGEN_GIT_SHA");
         let short_hash = &hash[0..7];
         let date = env!("VERGEN_GIT_COMMIT_DATE");
@@ -393,7 +393,7 @@ impl ColorPicker {
         let content = widget::column::with_capacity(4)
             .push(widget::svg(widget::svg::Handle::from_memory(
                 &include_bytes!(
-                    "../res/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-color-picker.svg"
+                    "../res/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-ext-color-picker.svg"
                 )[..],
             )))
             .push(widget::text::title3(fl!("app-title")))

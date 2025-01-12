@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>io.github.pixeldoted.cosmic-color-picker</id>
+  <id>io.github.pixeldoted.cosmic-ext-color-picker</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
   <developer id="io.github.pixeldoted">
     <name>PixelDoted</name>
   </developer>
   <update_contact></update_contact>
-  <url type="homepage">https://github.com/PixelDoted/cosmic-color-picker</url>
-  <url type="bugtracker">https://github.com/PixelDoted/cosmic-color-picker/issues</url>
+  <url type="homepage">https://github.com/PixelDoted/cosmic-ext-color-picker</url>
+  <url type="bugtracker">https://github.com/PixelDoted/cosmic-ext-color-picker/issues</url>
   <content_rating type="oars-1.1"/>
-  <name>COSMIC Color Picker</name>
+  <name>Color Picker for COSMIC</name>
   <summary>A color picker for the COSMIC desktop</summary>
   <description>
     <p>A color picker for the COSMIC desktop</p>
   </description>
-  <launchable type="desktop-id">io.github.pixeldoted.cosmic-color-picker.desktop</launchable>
-  <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/pixeldoted/cosmic-color-picker/master/res/icons/hicolor/256x256/apps/io.github.pixeldoted.cosmic-color-picker.svg</icon>
+  <launchable type="desktop-id">io.github.pixeldoted.cosmic-ext-color-picker.desktop</launchable>
+  <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/pixeldoted/cosmic-ext-color-picker/master/res/icons/hicolor/256x256/apps/io.github.pixeldoted.cosmic-ext-color-picker.svg</icon>
   <releases>
       <release version="1.0.0" date="2025-01-08">
           <description>
@@ -30,7 +30,7 @@
   </releases>
   <screenshots>
       <screenshot type="default">
-          <image>https://raw.githubusercontent.com/PixelDoted/cosmic-color-picker/refs/heads/main/res/screenshots/theme_dark.png</image>
+          <image>https://raw.githubusercontent.com/PixelDoted/cosmic-ext-color-picker/refs/heads/main/res/screenshots/theme_dark.png</image>
           <caption>Dark mode with RGB, HSV, OKLAB and OKLCH Colorspaces</caption>
       </screenshot>
   </screenshots>
@@ -49,7 +49,7 @@
       <mimetype>text/plain</mimetype>
     </mimetypes>
     <binaries>
-      <binary>cosmic-color-picker</binary>
+      <binary>cosmic-ext-color-picker</binary>
     </binaries>
   </provides>
 </component>

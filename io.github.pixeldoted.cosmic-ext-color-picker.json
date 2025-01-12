@@ -1,5 +1,5 @@
 {
-  "app-id": "io.github.pixeldoted.cosmic-color-picker",
+  "app-id": "io.github.pixeldoted.cosmic-ext-color-picker",
   "runtime": "org.freedesktop.Platform",
   "runtime-version": "24.08",
   "sdk": "org.freedesktop.Sdk",
@@ -20,20 +20,20 @@
   },
   "modules": [
     {
-      "name": "cosmic-color-picker",
+      "name": "cosmic-ext-color-picker",
       "buildsystem": "simple",
       "build-options": {
         "env": {
-          "CARGO_HOME": "/run/build/cosmic-color-picker/cargo"
+          "CARGO_HOME": "/run/build/cosmic-ext-color-picker/cargo"
         }
       },
       "build-commands": [
         "cargo --offline fetch --manifest-path Cargo.toml --verbose",
         "cargo --offline build --release --verbose",
         "install -Dm755 ./target/release/cosmic-ext-color-picker -t /app/bin/",
-        "install -Dm644 ./res/app_icon.svg /app/share/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-color-picker.svg",
-        "install -Dm644 ./res/metainfo.xml /app/share/metainfo/io.github.pixeldoted.cosmic-color-picker.metainfo.xml",
-        "install -Dm644 ./res/app.desktop /app/share/applications/io.github.pixeldoted.cosmic-color-picker.desktop"
+        "install -Dm644 ./res/app_icon.svg /app/share/icons/hicolor/scalable/apps/io.github.pixeldoted.cosmic-ext-color-picker.svg",
+        "install -Dm644 ./res/metainfo.xml /app/share/metainfo/io.github.pixeldoted.cosmic-ext-color-picker.metainfo.xml",
+        "install -Dm644 ./res/app.desktop /app/share/applications/io.github.pixeldoted.cosmic-ext-color-picker.desktop"
       ],
       "sources": [
         {

@@ -1,5 +1,5 @@
 name := 'cosmic-ext-color-picker'
-export APPID := 'io.github.pixeldoted.cosmic-color-picker'
+export APPID := 'io.github.pixeldoted.cosmic-ext-color-picker'
 
 rootdir := ''
 prefix := '/usr'
