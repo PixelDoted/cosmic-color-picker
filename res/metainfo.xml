@@ -10,10 +10,10 @@
   <url type="homepage">https://github.com/PixelDoted/cosmic-ext-color-picker</url>
   <url type="bugtracker">https://github.com/PixelDoted/cosmic-ext-color-picker/issues</url>
   <content_rating type="oars-1.1"/>
-  <name>Color Picker for COSMIC</name>
-  <summary>A color picker for the COSMIC desktop</summary>
+  <name>Color Picker for COSMIC™</name>
+  <summary>A color picker for the COSMIC™ desktop</summary>
   <description>
-    <p>A color picker for the COSMIC desktop</p>
+    <p>A color picker for the COSMIC™ desktop</p>
   </description>
   <launchable type="desktop-id">io.github.pixeldoted.cosmic-ext-color-picker.desktop</launchable>
   <icon type="remote" height="256" width="256">https://raw.githubusercontent.com/pixeldoted/cosmic-ext-color-picker/master/res/icons/hicolor/256x256/apps/io.github.pixeldoted.cosmic-ext-color-picker.svg</icon>
